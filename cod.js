@@ -11,9 +11,9 @@ function addGame(name, iconFilename, gameUrl) {
 }
 
 // === TUTAJ DODAJESZ NOWE GRY (KAŻDA W JEDNEJ LINIJCE) ===
-addGame("Lab Bio-Simulation", "lab_bio.png", "games/lab bio-simutation/index.html");
-addGame("Midnight Route 13", "route13.png", "games/midnight route 13/index.html");
-addGame("Molecular & Protein Lab", "molecular.png", "games/Molecular & Protein Lab/index.html");
+addGame("Lab Bio-Simulation", "lab_bio.png", "games/open/lab_bio-simutation.html");
+addGame("Midnight Route 13", "route13.png", "games/open/midnight_route_13.html");
+addGame("Molecular & Protein Lab", "molecular.png", "games/open/Molecular_&_Protein_Lab.html");
 // ========================================================
 
 // Automatyczne generowanie kafelków na stronie głównej
