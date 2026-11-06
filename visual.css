@@ -1,0 +1,113 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #121214;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    padding: 20px 40px;
+    background-color: #1f1f23;
+    border-bottom: 1px solid #2d2d35;
+    text-align: center;
+    position: relative;
+}
+
+.launcher-container {
+    padding: 40px;
+    flex-grow: 1;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.game-card {
+    background-color: #18181c;
+    border: 1px solid #2a2a32;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    border-color: #6366f1;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+}
+
+.game-icon {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    background-color: #2a2a32;
+}
+
+.game-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    color: #e4e4e7;
+}
+
+/* Widok podstrony gry w tej samej karcie */
+.game-view {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100vh;
+}
+
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-btn {
+    position: absolute;
+    left: 30px;
+    background: #2a2a32;
+    border: none;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.back-btn:hover {
+    background: #3f3f46;
+}
+
+.game-frame-container {
+    flex-grow: 1;
+    display: flex;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #ffffff;
+}

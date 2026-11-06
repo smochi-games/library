@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nocny Autobus - Midnight Route 13</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+            background-color: #020305;
+            color: #33ff66;
+        }
+
+        .font-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .crt-overlay {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.4) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .glow-green { text-shadow: 0 0 8px rgba(51, 255, 102, 0.8); }
+        .glow-red { text-shadow: 0 0 10px rgba(255, 51, 51, 0.9); }
+        .glow-purple { text-shadow: 0 0 12px rgba(186, 85, 211, 0.9); }
+        .glow-yellow { text-shadow: 0 0 8px rgba(255, 215, 0, 0.8); }
+
+        #driver-tablet {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+        #driver-tablet.tablet-hidden {
+            transform: translateY(120%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #toast-notification {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #051008; }
+        ::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 2px; }
+
+        .typewriter-cursor::after {
+            content: '█';
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden bg-black">
+
+    <!-- CRT Filter Overlay -->
+    <div class="absolute inset-0 crt-overlay z-40 pointer-events-none"></div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast-notification" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-[-10px] bg-black/95 border-2 border-yellow-500 text-yellow-300 px-6 py-2 rounded-lg shadow-2xl font-tech text-center text-sm sm:text-base backdrop-blur-md">
+        <span id="toast-text">KOMUNIKAT SYSTEMOWY</span>
+    </div>
+
+    <!-- Main Game Canvas -->
+    <canvas id="gameCanvas" class="absolute inset-0 w-full h-full z-0 block cursor-crosshair"></canvas>
+
+    <!-- Lore Intro Cutscene Screen -->
+    <div id="cutscene-screen" class="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-3xl w-full bg-black/90 border-2 border-green-700 p-6 sm:p-8 rounded-xl shadow-2xl relative text-left">
+            <div class="flex justify-between items-center border-b border-green-800 pb-3 mb-6">
+                <span class="text-red-500 font-bold text-sm sm:text-base font-tech tracking-widest glow-red">
+                    [ RECORDING_LOG #013 - ANOMALY WAR ERA ]
+                </span>
+                <span class="text-xs text-gray-400 font-tech">KLASYFIKACJA: TAJNE</span>
+            </div>
+
+            <!-- Typewriter Text Output Area -->
+            <div id="cutscene-text-container" class="min-h-[220px] text-green-300 text-base sm:text-xl leading-relaxed space-y-4 font-tech text-justify">
+                <!-- Text paragraphs populated dynamically -->
+            </div>
+
+            <div class="mt-8 flex justify-between items-center border-t border-green-900 pt-4">
+                <button id="btn-skip-cutscene" class="text-gray-500 hover:text-gray-300 text-xs sm:text-sm font-tech underline">
+                    [ POMIŃ HISTORIĘ ]
+                </button>
+                <button id="btn-next-cutscene" class="px-6 py-2 bg-green-900 hover:bg-green-700 text-green-100 font-bold text-sm sm:text-base rounded border border-green-500 glow-green transition-all hidden">
+                    DALEJ ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Dashboard Header HUD -->
+    <header class="absolute top-2 left-2 right-2 z-30 flex flex-wrap justify-between items-center bg-black/90 border border-green-800/80 px-3 py-1.5 rounded-lg shadow-2xl backdrop-blur-md text-xs sm:text-sm">
+        <div class="flex items-center space-x-4">
+            <div>
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">STATUS POJAZDU</span>
+                <span id="vehicle-status" class="font-bold text-yellow-400 font-tech">JAZDA W TRASIE</span>
+            </div>
+            <div>
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">ETAP ZMIANY</span>
+                <span id="hud-shift-num" class="font-bold text-purple-400 font-tech glow-purple">ZMIANA #1</span>
+            </div>
+            <div class="hidden md:block">
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">POPRZEDNI PRZYSTANEK</span>
+                <span id="hud-prev-stop" class="font-bold text-gray-300 font-tech">Baza Wyjazdowa</span>
+            </div>
+            <div>
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">NASTĘPNY PRZYSTANEK</span>
+                <span id="hud-next-stop" class="font-bold text-green-400 font-tech glow-green">#1 Cmentarz Kosmiczny</span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <div id="queue-badge" class="hidden bg-yellow-950/80 border border-yellow-500 px-2 py-0.5 rounded text-yellow-300 font-tech font-bold text-xs animate-pulse">
+                KOLEJKA: <span id="queue-count-val">1 / 1</span>
+            </div>
+
+            <div class="text-center bg-green-950/60 border border-green-600 px-2 py-0.5 rounded">
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">LUDZIE</span>
+                <span id="human-counter" class="text-base sm:text-lg font-bold text-green-400 glow-green">0 / 13</span>
+            </div>
+
+            <div class="text-center bg-red-950/60 border border-red-800 px-2 py-0.5 rounded">
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">MOŻLIWE POMYŁKI</span>
+                <span id="sanity-counter" class="text-base sm:text-lg font-bold text-red-500 glow-red">3</span>
+            </div>
+
+            <div class="text-right">
+                <span class="text-gray-400 text-[9px] block font-tech leading-none">CZAS SYSTEMOWY</span>
+                <span id="time-display" class="text-base sm:text-lg font-bold text-red-500 glow-red font-tech">19:20</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Driver Control Tablet (Bottom-Left) -->
+    <aside id="driver-tablet" class="tablet-hidden absolute bottom-2 left-2 z-30 w-[94vw] sm:w-[460px] h-[52vh] max-h-[460px] bg-black/95 border-2 border-green-700/90 rounded-lg shadow-2xl flex flex-col p-2 backdrop-blur-md">
+        
+        <!-- Tab Navigation Buttons -->
+        <div class="flex justify-between items-center border-b border-green-800 pb-1 mb-1">
+            <div class="flex space-x-1 overflow-x-auto">
+                <button id="tab-btn-doc" class="py-1 px-2 bg-green-900/80 text-green-300 border border-green-600 rounded text-[11px] font-bold">
+                    🆔 TICKET / ID
+                </button>
+                <button id="tab-btn-manifest" class="py-1 px-2 bg-gray-900 text-gray-400 border border-gray-700 rounded text-[11px] font-bold hover:bg-gray-800">
+                    📋 BAZA DANYCH (VIT)
+                </button>
+                <button id="tab-btn-route" class="py-1 px-2 bg-gray-900 text-gray-400 border border-gray-700 rounded text-[11px] font-bold hover:bg-gray-800">
+                    🚏 TRASA / MAPA
+                </button>
+                <button id="tab-btn-lore" class="py-1 px-2 bg-gray-900 text-gray-400 border border-gray-700 rounded text-[11px] font-bold hover:bg-gray-800">
+                    📜 ZASADY / BAZA
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab 1: Ticket / Active Scan -->
+        <div id="tab-content-doc" class="flex-1 flex flex-col justify-between overflow-hidden bg-green-950/20 border border-green-900/40 p-2 rounded">
+            <div id="doc-active-view" class="h-full flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center border-b border-green-900 pb-1 mb-1.5">
+                        <span class="text-[11px] text-green-400 font-tech">KARTA PASAŻERA: <span id="doc-id-val" class="text-yellow-300">---</span></span>
+                        <span id="doc-queue-status" class="text-[9px] bg-yellow-900/70 text-yellow-300 px-1.5 py-0.5 rounded font-tech">OSOBA 1/1</span>
+                    </div>
+
+                    <div class="flex space-x-2.5 items-center mb-1.5">
+                        <div class="w-16 h-20 border border-green-600 bg-black rounded overflow-hidden flex-shrink-0 relative">
+                            <canvas id="idPhotoCanvas" class="w-full h-full bg-black"></canvas>
+                        </div>
+                        <div class="space-y-0.5 flex-1 text-xs">
+                            <div>
+                                <span class="text-gray-400 text-[9px] block leading-none">DANE PERSONALNE:</span>
+                                <span id="doc-name" class="font-bold text-yellow-300 text-xs sm:text-sm">---</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 text-[9px] block leading-none">PROFESJA ZGŁOSZONA:</span>
+                                <span id="doc-job" class="text-green-300 font-bold">---</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400 text-[9px] block leading-none">ROZPOCZĘCIE ZMIANY NA BILECIE:</span>
+                                <span id="doc-job-schedule" class="text-yellow-400 font-tech">---</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Centered Target Station & Enlarged Stamp Section -->
+                    <div class="mt-1 pt-1.5 border-t border-green-900/60 flex flex-col items-center justify-center text-center">
+                        <span class="text-gray-400 text-[10px] block leading-none mb-0.5 font-tech">STACJA DOCELOWA:</span>
+                        <span id="doc-station" class="text-green-300 font-bold text-sm block mb-1">---</span>
+
+                        <div class="flex flex-col items-center mt-1">
+                            <span class="text-[9px] text-gray-500 font-tech leading-none mb-1">OFFICIAL STAMP</span>
+                            <div id="doc-stamp" class="w-16 h-16 sm:w-20 sm:h-20 border-2 sm:border-3 border-yellow-400 text-yellow-300 rounded-full flex items-center justify-center font-bold text-sm sm:text-base font-tech rotate-[-12deg] tracking-wider shadow-lg shrink-0 bg-yellow-950/40 glow-yellow">
+                                M.R.13
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-black/80 border border-green-900 p-1.5 rounded text-[11px] text-green-300 mt-1">
+                    <span class="text-yellow-500 font-tech block text-[10px] leading-none mb-0.5">💡 SPRAWDZAJ BAZĘ I MAPĘ:</span>
+                    <span>Sprawdzaj status <strong>VIT</strong>, godziny pracy oraz pisownię stacji w zakładce <strong>TRASA / MAPA</strong>!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Passenger Database & Vital Status -->
+        <div id="tab-content-manifest" class="flex-1 hidden overflow-y-auto bg-green-950/20 border border-green-900/40 p-2 rounded text-xs space-y-1">
+            <h3 class="text-yellow-400 font-bold text-xs border-b border-green-800 pb-0.5 mb-1 font-tech flex justify-between items-center">
+                <span>REJESTR OBYWATELI I STAN VITALNY (VIT)</span>
+                <span class="text-[9px] text-gray-400">STATUS VIT</span>
+            </h3>
+            <div id="manifest-list" class="space-y-1"></div>
+        </div>
+
+        <!-- Tab 3: Official Route Map -->
+        <div id="tab-content-route" class="flex-1 hidden overflow-y-auto bg-green-950/20 border border-green-900/40 p-2 rounded text-xs space-y-1">
+            <h3 class="text-yellow-400 font-bold text-xs border-b border-green-800 pb-0.5 mb-1 font-tech">OFICJALNY SPIS PRZYSTANKÓW TRASY 13</h3>
+            <div id="route-stops-list" class="space-y-1 text-gray-300 text-[11px]"></div>
+        </div>
+
+        <!-- Tab 4: Shift Guidelines -->
+        <div id="tab-content-lore" class="flex-1 hidden overflow-y-auto bg-red-950/10 border border-red-900/40 p-2 rounded text-[11px] text-gray-300 space-y-1.5">
+            <h3 class="text-red-400 font-bold text-xs border-b border-red-900 pb-0.5 glow-red font-tech">📜 INSTRUKCJA DETEKCJI DOPPELGANGERÓW</h3>
+            <div class="space-y-1 text-gray-300">
+                <p><strong class="text-red-400">1. Osoba Zmarła (STAN VIT):</strong> Jeśli bilet należy do kogoś o stanie <span class="text-red-400 font-bold">ZMARŁY</span>, podaje się za nią potwór!</p>
+                <p><strong class="text-yellow-400">2. Niezgodna Godzina Pracy:</strong> Jeśli godzina rozpoczęcia pracy na bilecie/dialogu różni się od wpisu w BAZIE VIT – jest to oszust!</p>
+                <p><strong class="text-purple-400">3. Sfałszowane ID (8 Cyfr):</strong> Doppelgangerzy mają na bilecie 2 zmienione cyfry w stosunku do BAZY VIT!</p>
+                <p><strong class="text-green-400">4. Koniec Zmiany o 06:45:</strong> Dojechanie do godziny 06:45 rano automatycznie kończy Twoją zmianę sukcesem.</p>
+                <p><strong class="text-amber-400">5. Podróż > 3h Przed Zmianą:</strong> Prawdziwy człowiek NIE jedzie do pracy wcześniej niż 3 godziny przed rozpoczęciem zmiany!</p>
+                <p><strong class="text-yellow-300">6. Literówka w Nazwie Stacji:</strong> Jeśli nazwa stacji na bilecie zawiera przekręcone słowo lub błąd w pisowni w stosunku do karty trasy, pasażer to Doppelganger!</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Interrogation Dialogue & Action Modal -->
+    <div id="passenger-modal" class="absolute top-1/2 right-4 sm:right-12 transform -translate-y-1/2 z-30 w-[88vw] sm:w-[350px] bg-black/95 border-2 border-yellow-500/90 rounded-xl p-3 shadow-2xl hidden backdrop-blur-md">
+        <div class="flex justify-between items-center border-b border-yellow-600/60 pb-1 mb-2">
+            <span class="text-yellow-400 font-bold text-xs sm:text-sm font-tech">👥 PRZESŁUCHANIE NA STOPNIACH</span>
+            <button id="btn-close-modal" class="text-gray-400 hover:text-white font-bold text-xs px-1">✕</button>
+        </div>
+
+        <div class="bg-green-950/40 border border-green-800 p-2 rounded mb-3 min-h-[60px] text-xs text-yellow-200 font-tech">
+            <span class="text-gray-400 text-[9px] block">ODPOWIEDŹ PASAŻERA:</span>
+            <p id="modal-dialogue-output" class="italic">"Stoję w drzwiach autobusu. O co chcesz zapytać?"</p>
+        </div>
+
+        <div class="space-y-1.5 mb-3">
+            <button id="btn-ask-job" class="w-full text-left px-2 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-green-300 rounded text-xs font-tech transition-colors">
+                💬 [ ZAPYTAJ O PRACĘ ]
+            </button>
+            <button id="btn-ask-reason" class="w-full text-left px-2 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-green-300 rounded text-xs font-tech transition-colors">
+                💬 [ ZAPYTAJ O SPÓŹNIENIE / GODZINĘ ]
+            </button>
+            <button id="btn-ask-dest" class="w-full text-left px-2 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-green-300 rounded text-xs font-tech transition-colors">
+                💬 [ ZAPYTAJ O STACJĘ DOCELOWĄ ]
+            </button>
+            <button id="btn-ask-name" class="w-full text-left px-2 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-green-300 rounded text-xs font-tech transition-colors">
+                💬 [ ZAPYTAJ O DANE I BILET ]
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 border-t border-gray-800 pt-2">
+            <button id="btn-allow" class="px-2 py-2 bg-green-800 hover:bg-green-700 text-white font-bold text-xs rounded border border-green-400 glow-green transition-all">
+                ✅ WPUŚĆ DO AUTOBUSU
+            </button>
+            <button id="btn-purge" class="px-2 py-2 bg-red-900 hover:bg-red-800 text-red-200 font-bold text-xs rounded border border-red-500 glow-red transition-all">
+                🔫 STRZEL (PISTOLET)
+            </button>
+        </div>
+    </div>
+
+    <!-- Clown Tarot Card Game Modal -->
+    <div id="clown-modal" class="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 sm:p-6 text-center hidden backdrop-blur-lg">
+        <div class="max-w-2xl w-full bg-purple-950/50 border-2 border-purple-500 rounded-xl p-4 sm:p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-purple-800 pb-2 mb-4">
+                <span class="text-red-500 font-bold text-base sm:text-xl font-tech glow-red tracking-widest animate-pulse">
+                    🤡 NIEZAPOWIEDZIANY GOŚĆ: KLAUN PRZEZNACZENIA
+                </span>
+                <span class="text-xs bg-purple-900/80 text-purple-200 px-2 py-0.5 rounded font-tech">ZMIANA 2 - PASAŻER #6</span>
+            </div>
+
+            <!-- Dialogue box where Clown speaks -->
+            <div class="bg-black/80 border border-purple-600/80 p-4 rounded-lg mb-6 shadow-inner text-left">
+                <span class="text-xs text-purple-400 font-tech block mb-1">💬 KLAUN PRZEZNACZENIA MÓWI:</span>
+                <p id="clown-dialogue-text" class="text-yellow-300 text-sm sm:text-lg font-tech italic leading-relaxed">
+                    "Hahaha! Witam Pana Kierowcę na 2 ZMIANIE! Czas na małą grę hazardową... Wybierz JEDNĄ kartę! Pamiętaj: 2 są przeklęte, a tylko 1 łaskawa!"
+                </p>
+            </div>
+
+            <!-- Cards Container & Shoot Action Row -->
+            <div id="clown-actions-wrapper" class="space-y-4 mb-6">
+                <div id="clown-cards-container" class="grid grid-cols-3 gap-3 sm:gap-6 max-w-md mx-auto"></div>
+
+                <div class="pt-2 border-t border-purple-900/60 flex justify-center">
+                    <button id="btn-shoot-clown" class="px-6 py-2.5 bg-red-900/90 hover:bg-red-800 text-red-200 font-bold text-xs sm:text-sm rounded-lg border-2 border-red-500 glow-red transition-all flex items-center space-x-2 hover:scale-105 active:scale-95">
+                        <span>🔫 STRZEL DO KLAUNA (PISTOLET)</span>
+                    </button>
+                </div>
+            </div>
+
+            <button id="btn-confirm-clown" class="hidden px-8 py-2.5 bg-purple-800 hover:bg-purple-700 text-white font-bold text-sm sm:text-base rounded-lg border border-purple-400 glow-purple transition-all">
+                KLAUN ZNIKA W MGLI ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen" class="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-6 text-center hidden">
+        <h1 class="text-4xl sm:text-6xl font-bold text-red-600 glow-red mb-1 tracking-wider">NOCNY AUTOBUS</h1>
+        <h2 class="text-xl sm:text-2xl font-bold text-green-400 glow-green mb-4">MIDNIGHT ROUTE 13 - GODZINA 19:20</h2>
+        
+        <div class="max-w-xl bg-green-950/30 border border-green-800 p-4 rounded-lg text-left text-green-300 text-xs sm:text-sm space-y-2 mb-6 shadow-2xl">
+            <p><strong class="text-yellow-400">1. Tablet i Baza VIT:</strong> Sprawdzaj status <span class="text-red-400 font-bold">ZMARŁY</span>, oficjalne godziny pracy oraz czy podróż nie odbywa się ponad 3h za wcześnie.</p>
+            <p><strong class="text-green-400">2. Literówki w Stacjach:</strong> Zwracaj uwagę na nazwę stacji docelowej – potwory popełniają literówki lub mylą słowa!</p>
+            <p><strong class="text-red-400">3. Cel:</strong> Dowieź 13 prawdziwych ludzi LUB przetrwaj trasę do godziny <span class="text-yellow-400 font-bold">06:45 AM</span>!</p>
+        </div>
+
+        <button id="btn-start-game" class="px-8 py-3 bg-red-800 hover:bg-red-700 text-white font-bold text-xl sm:text-2xl rounded-lg border-2 border-red-400 hover:scale-105 transition-all glow-red">
+            ROZPOCZNIJ TRASĘ (19:20)
+        </button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="absolute inset-0 z-50 bg-black/98 flex flex-col items-center justify-center p-4 sm:p-6 text-center overflow-y-auto hidden">
+        <h1 class="text-4xl sm:text-6xl font-bold text-red-600 glow-red mb-2 animate-pulse">GAME OVER</h1>
+        <p id="gameover-reason" class="text-sm sm:text-base text-gray-300 max-w-lg mb-4">Doppelganger opanował autobus...</p>
+        
+        <div id="postmortem-box" class="w-full max-w-lg bg-red-950/40 border-2 border-red-700/80 rounded-xl p-4 text-left space-y-3 mb-6 shadow-2xl backdrop-blur-md">
+            <div class="flex justify-between items-center border-b border-red-800/80 pb-2">
+                <span class="text-red-400 font-bold text-sm font-tech glow-red">🔍 RAPORT ŚLEDCZY: WPUŚZCZENI DOPPELGANGERZY</span>
+                <span class="text-[10px] bg-red-900 text-red-200 px-2 py-0.5 rounded font-tech">SEKCJA ZONA-13</span>
+            </div>
+
+            <div>
+                <span class="text-xs text-gray-400 block font-tech leading-none mb-1">TOŻSAMOŚCI WPUŚCZONYCH ANOMALII (IMIĘ, NAZWISKO, ID):</span>
+                <div id="pm-monster-name" class="space-y-1.5 max-h-40 overflow-y-auto pr-1">---</div>
+            </div>
+
+            <div class="space-y-1.5 text-xs text-gray-200">
+                <p><strong class="text-red-400 font-tech">👁️ DEFEKTY WYGLĄDU:</strong></p>
+                <ul id="pm-physical-list" class="list-disc list-inside space-y-0.5 text-red-300 pl-1"></ul>
+            </div>
+
+            <div class="space-y-1.5 text-xs text-gray-200">
+                <p><strong class="text-yellow-400 font-tech">📋 ANOMALIE ZMIANY I STAN VITALNY:</strong></p>
+                <ul id="pm-doc-list" class="list-disc list-inside space-y-0.5 text-yellow-300 pl-1"></ul>
+            </div>
+
+            <div class="bg-black/80 border border-red-900 p-2 rounded text-[11px] text-gray-300 italic">
+                <strong class="text-yellow-500 font-tech not-italic">💡 WSKAZÓWKA NA PRZYSZŁOŚĆ:</strong>
+                <span id="pm-hint-text">Pamiętaj o weryfikacji pieczątki M.R.13, bazy vitalnej oraz nazwy stacji z mapą trasy!</span>
+            </div>
+        </div>
+
+        <button id="btn-restart" class="px-8 py-3 bg-green-800 hover:bg-green-700 text-white font-bold text-xl rounded-lg border-2 border-green-400 hover:scale-105 transition-all">
+            SPRÓBUJ PONOWNIE
+        </button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="win-screen" class="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-6 text-center hidden">
+        <h1 class="text-4xl sm:text-6xl font-bold text-green-400 glow-green mb-3">KONIEC ZMIANY - BEZPIECZNA TRASA</h1>
+        <p id="win-reason-text" class="text-xl text-yellow-300 max-w-lg mb-6">Przetrwałeś Nocną Trasę 13!</p>
+        <div class="flex space-x-4">
+            <button id="btn-next-shift" class="px-8 py-3 bg-purple-800 hover:bg-purple-700 text-white font-bold text-xl rounded-lg border-2 border-purple-400 hover:scale-105 transition-all glow-purple">
+                PRZEJDŹ DO 2 ZMIANY ➔
+            </button>
+        </div>
+    </div>
+
+    <script>
+        class WebAudioSynth {
+            constructor() {
+                this.ctx = null;
+                this.isInit = false;
+            }
+
+            init() {
+                if (this.isInit) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+                this.isInit = true;
+            }
+
+            playClick() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            }
+
+            playBrakeSound() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1800, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            }
+
+            playGunshot() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.18);
+                gain.gain.setValueAtTime(0.7, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.2);
+            }
+
+            playScream() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(650, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 3.8);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 3.8);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 3.8);
+            }
+        }
+
+        const audio = new WebAudioSynth();
+
+        const OFFICIAL_STOPS = [
+            "PRZYSTANEK #1 - CMENTARZ KOSMICZNY",
+            "PRZYSTANEK #2 - OSIEDLE MGLISTE",
+            "PRZYSTANEK #3 - STACJA ZONA 13",
+            "PRZYSTANEK #4 - PARKING BEZ NADZORU",
+            "PRZYSTANEK #5 - MOSTEK KORYTARZA",
+            "PRZYSTANEK #6 - FABRYKA SYNTETYKÓW",
+            "PRZYSTANEK #7 - TERYTORIUM HUTNICZE",
+            "PRZYSTANEK #8 - PROSPEKT ŚWIATŁOCIENIA",
+            "PRZYSTANEK #9 - KLOSTERMEYER WEST",
+            "PRZYSTANEK #10 - KOŃCOWY MIASTO ŚWIATŁA"
+        ];
+
+        const SHIFT_HOURS_LIST = [
+            { minutes: 20 * 60, label: "20:00" },
+            { minutes: 21 * 60, label: "21:00" },
+            { minutes: 22 * 60 + 30, label: "22:30" },
+            { minutes: (24 + 0) * 60 + 20, label: "00:20" },
+            { minutes: (24 + 6) * 60 + 30, label: "06:30" },
+            { minutes: (24 + 8) * 60, label: "08:00" }
+        ];
+
+        const JOBS_DATABASE = [
+            "Ochroniarz Obiektu", "Piekarz Chleba", "Pielęgniarka Szpitalna", 
+            "Kasjer Monopolowego 24/7", "Inżynier Sieci", "Kierownik Magazynu",
+            "Maszynista Turbin", "Technik Reaktora", "Dyspozytor Monitoringu",
+            "Laborant Analityczny", "Szanowny Patron Klubu", "Kierowca Holownika",
+            "Konstruktor Maszyn", "Sprzątacz Przemysłowy", "Mechanik Kotłowni",
+            "Apotakarz Całodobowy", "Ochotnik Straży Pozarnej", "Operator Dźwigu"
+        ];
+
+        const MALE_NAMES = ["Marek", "Piotr", "Jan", "Tomasz", "Grzegorz", "Krzysztof", "Michał", "Andrzej", "Paweł", "Jakub"];
+        const FEMALE_NAMES = ["Anna", "Ewa", "Katarzyna", "Monika", "Alicja", "Barbara", "Agnieszka", "Maria", "Magdalena", "Joanna"];
+        const LAST_NAMES = ["Kowalski", "Nowak", "Wiśniewski", "Wójcik", "Kowalczyk", "Kamiński", "Zieliński", "Szymański", "Dąbrowski", "Kozłowski", "Jankowski", "Mazur", "Wojciechowski", "Krawczyk", "Kaczmarek", "Piotrowski", "Grabowski", "Zając", "Pawłowski", "Król"];
+
+        function getRandomName() {
+            const isFemale = Math.random() < 0.5;
+            const firstName = isFemale 
+                ? FEMALE_NAMES[Math.floor(Math.random() * FEMALE_NAMES.length)]
+                : MALE_NAMES[Math.floor(Math.random() * MALE_NAMES.length)];
+            let lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+            if (isFemale && lastName.endsWith('i')) lastName = lastName.slice(0, -1) + 'a';
+            return `${firstName} ${lastName}`;
+        }
+
+        let state = 'CUTSCENE';
+        let humansBoarded = 0;
+        let targetHumansCount = 13;
+        let sanityErrors = 0;
+        let letInDoppelgangers = [];
+        let currentShift = 1;
+        let shiftPassengerCounter = 0;
+        let isClownEventActive = false;
+        let clownCards = [];
+
+        let gameModifiers = {
+            speedMultiplier: 1.0,
+            stopMinQueue: 1,
+            stopMaxQueue: 3,
+            doppelgangerChance: 0.48
+        };
+
+        let distanceRemaining = 350;
+        let currentStopIndex = 0;
+        let currentPassenger = null;
+        let passengerQueue = [];
+        let activeQueueIndex = 0;
+        let manifestData = [];
+        let gameActive = false;
+        let purgeAnimationTimer = 0;
+        let roadOffset = 0;
+        let toastTimeout = null;
+
+        let attackStartTime = 0;
+        let pendingMonsterPassenger = null;
+
+        const START_TIME_MINUTES = 19 * 60 + 20; 
+        const END_TIME_MINUTES = (24 + 6) * 60 + 45;
+        let clockTimeMinutes = START_TIME_MINUTES;
+
+        let passengerBoundingBox = { x: 0, y: 0, width: 0, height: 0 };
+
+        const gameCanvas = document.getElementById('gameCanvas');
+        const ctx = gameCanvas.getContext('2d');
+        const idPhotoCanvas = document.getElementById('idPhotoCanvas');
+        const idPhotoCtx = idPhotoCanvas.getContext('2d');
+
+        function resizeCanvas() {
+            gameCanvas.width = window.innerWidth;
+            gameCanvas.height = window.innerHeight;
+            idPhotoCanvas.width = 120;
+            idPhotoCanvas.height = 150;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const LORE_PARAGRAPHS = [
+            "Wybuch wojen z 'Anomaliami' – istotami zdolnymi przybierać idealną ludzką postać – zniszczył dotychczasowy porządek. Rząd podniósł podatki do drastycznych rozmiarów, drążąc kieszenie obywateli.",
+            "Wpadłeś w gigantyczne, paraliżujące długi. Przez całe miesiące bezskutecznie szukałeś jakiejkolwiek pracy. Głód i widmo eksmisji były coraz bliżej...",
+            "Aż do dzisiaj. Niespodziewany telefon o 18:30. Nieznany głos zaoferował Ci nocną posadę kierowcy autobusu. Zgodziłeś się natychmiast, bez zastanowienia.",
+            "Twoje zadanie jest jedno: prowadzić nocny autobus Trasą 13, bezpiecznie przewozić nocnych pracowników i bezwzględnie eliminować Doppelgangery.",
+            "Anonimowy pracodawca obiecał, że po przepracowaniu dokładnie 3 ZMIAN wszystkie Twoje długi zostaną całkowicie umorzone i spłacone. Czas zacząć pierwszą trasę..."
+        ];
+
+        let currentCutsceneStep = 0;
+        let typewriterCharIndex = 0;
+        let typewriterTimer = null;
+
+        function runCutsceneStep(stepIdx) {
+            const container = document.getElementById('cutscene-text-container');
+            const nextBtn = document.getElementById('btn-next-cutscene');
+            
+            if (stepIdx >= LORE_PARAGRAPHS.length) {
+                document.getElementById('cutscene-screen').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+                return;
+            }
+
+            nextBtn.classList.add('hidden');
+            if (typewriterTimer) clearInterval(typewriterTimer);
+
+            let htmlContent = '';
+            for (let i = 0; i < stepIdx; i++) {
+                htmlContent += `<p class="text-green-600/80">${LORE_PARAGRAPHS[i]}</p>`;
+            }
+            htmlContent += `<p id="active-typewriter-p" class="typewriter-cursor text-yellow-300"></p>`;
+            container.innerHTML = htmlContent;
+
+            const activeP = document.getElementById('active-typewriter-p');
+            const fullText = LORE_PARAGRAPHS[stepIdx];
+            typewriterCharIndex = 0;
+
+            typewriterTimer = setInterval(() => {
+                if (typewriterCharIndex < fullText.length) {
+                    activeP.innerText = fullText.slice(0, typewriterCharIndex + 1);
+                    typewriterCharIndex++;
+                } else {
+                    clearInterval(typewriterTimer);
+                    activeP.classList.remove('typewriter-cursor');
+                    nextBtn.classList.remove('hidden');
+                }
+            }, 25);
+        }
+
+        document.getElementById('btn-next-cutscene').addEventListener('click', () => {
+            audio.playClick();
+            currentCutsceneStep++;
+            runCutsceneStep(currentCutsceneStep);
+        });
+
+        document.getElementById('btn-skip-cutscene').addEventListener('click', () => {
+            audio.playClick();
+            if (typewriterTimer) clearInterval(typewriterTimer);
+            document.getElementById('cutscene-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        });
+
+        runCutsceneStep(0);
+
+        function showToast(text, duration = 3000) {
+            const toast = document.getElementById('toast-notification');
+            const toastText = document.getElementById('toast-text');
+            toastText.innerText = text;
+            
+            toast.classList.remove('opacity-0', 'translate-y-[-10px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-10px]');
+            }, duration);
+        }
+
+        function getFormattedTime() {
+            const hrs = Math.floor(clockTimeMinutes / 60) % 24;
+            const mins = clockTimeMinutes % 60;
+            const hStr = hrs < 10 ? `0${hrs}` : `${hrs}`;
+            const mStr = mins < 10 ? `0${mins}` : `${mins}`;
+            return `${hStr}:${mStr}`;
+        }
+
+        function generateValidPassengerID() {
+            return `ID-${Math.floor(10000000 + Math.random() * 90000000)}`;
+        }
+
+        function generateClownPassenger() {
+            return {
+                isClown: true,
+                isDoppelganger: false,
+                docData: {
+                    name: "KLAUN CYRKOWY (ANOMALIA GRACZ)",
+                    id: "ID-🤡🤡🤡🤡🤡🤡🤡",
+                    job: "Iluzjonista i Hazardzista",
+                    schedule: "Zmiana Wieczorna",
+                    station: "WSZYSTKIE STACJE"
+                },
+                responses: {
+                    job: "Jestem Panem Losu i Klaunem Drugiej Zmiany! Wybierz jedną z moich kart!",
+                    reason: "Przybyłem przetestować Twoje szczęście na 2 ZMIANIE!"
+                },
+                currentFeatures: {
+                    skinColor: '#ffffff',
+                    eyeCount: 2,
+                    eyeType: 'clown',
+                    teethType: 'sharp',
+                    hairStyle: 'curly',
+                    hairColor: '#ef4444',
+                    isClownMakeup: true
+                }
+            };
+        }
+
+        function generatePassenger(isDoppelganger = false) {
+            if (currentShift === 2) {
+                shiftPassengerCounter++;
+                if (shiftPassengerCounter === 6) {
+                    return generateClownPassenger();
+                }
+            }
+
+            const name = getRandomName();
+            const targetStation = OFFICIAL_STOPS[Math.floor(Math.random() * OFFICIAL_STOPS.length)];
+            const jobTitle = JOBS_DATABASE[Math.floor(Math.random() * JOBS_DATABASE.length)];
+            
+            let officialShift;
+            if (!isDoppelganger) {
+                const validShifts = SHIFT_HOURS_LIST.filter(s => {
+                    const diff = s.minutes - clockTimeMinutes;
+                    return diff >= -60 && diff <= 180;
+                });
+                if (validShifts.length > 0) {
+                    officialShift = validShifts[Math.floor(Math.random() * validShifts.length)];
+                } else {
+                    officialShift = SHIFT_HOURS_LIST.reduce((prev, curr) => 
+                        Math.abs(curr.minutes - clockTimeMinutes) < Math.abs(prev.minutes - clockTimeMinutes) ? curr : prev
+                    );
+                }
+            } else {
+                officialShift = SHIFT_HOURS_LIST[Math.floor(Math.random() * SHIFT_HOURS_LIST.length)];
+            }
+
+            const hairStyles = ['short', 'fringe', 'curly', 'long_sides', 'cap', 'bald'];
+            const hairColors = ['#1a1a1a', '#4a2c11', '#b8860b', '#8b0000', '#6b7280'];
+            
+            const realFeatures = {
+                skinColor: ['#ffdbac', '#f1c27d', '#e0ac69', '#8d5524'][Math.floor(Math.random() * 4)],
+                eyeCount: 2,
+                eyeType: 'normal',
+                teethType: 'normal',
+                hairStyle: hairStyles[Math.floor(Math.random() * hairStyles.length)],
+                hairColor: hairColors[Math.floor(Math.random() * hairColors.length)]
+            };
+
+            let currentFeatures = JSON.parse(JSON.stringify(realFeatures));
+            let anomalyType = null;
+            let docName = name;
+            let docId = generateValidPassengerID();
+            let docStation = targetStation;
+            let docJob = jobTitle;
+            let docSchedule = `Zmiana od godz. ${officialShift.label}`;
+            let docStamp = "M.R.13";
+
+            let physicalAnomalies = [];
+            let docAnomalies = [];
+            let isLate = clockTimeMinutes > officialShift.minutes;
+            let mentionsLate = isLate;
+
+            if (isDoppelganger) {
+                const anomalyList = [
+                    'extra_eyes', 'sharp_teeth', 'weird_skin', 
+                    'fake_station', 'station_typo', 'fake_id_format', 
+                    'mismatched_vit_shift', 'time_contradiction', 
+                    'impersonate_dead', 'too_early_shift', 'fake_stamp'
+                ];
+                anomalyType = anomalyList[Math.floor(Math.random() * anomalyList.length)];
+
+                switch (anomalyType) {
+                    case 'extra_eyes':
+                        currentFeatures.eyeCount = 3;
+                        physicalAnomalies.push("Wyhodowane 3. oko na czele pasażera.");
+                        break;
+                    case 'sharp_teeth':
+                        currentFeatures.teethType = 'sharp';
+                        physicalAnomalies.push("Ostre, drapieżne uzębienie.");
+                        break;
+                    case 'weird_skin':
+                        currentFeatures.skinColor = '#3b82f6';
+                        physicalAnomalies.push("Nienaturalny, sinoniebieski odcień skóry.");
+                        break;
+                    case 'fake_station':
+                        docStation = "PRZYSTANEK #99 - PĘTLA CIENIA";
+                        docAnomalies.push("Podany przystanek w ogóle nie istnieje na oficjalnej karcie trasy!");
+                        break;
+                    case 'station_typo':
+                        const originalStop = targetStation;
+                        const typoMap = [
+                            { from: "CMENTARZ", to: "CMĘTARZ" },
+                            { from: "KOSMICZNY", to: "KOSMITYCZNY" },
+                            { from: "OSIEDLE", to: "OSIEDLISKO" },
+                            { from: "MGLISTE", to: "MGLISTEŃ" },
+                            { from: "STACJA", to: "STACJONAR" },
+                            { from: "PARKING", to: "PARKINK" },
+                            { from: "KORYTARZA", to: "KORYTA" },
+                            { from: "FABRYKA", to: "FABRYKACJA" },
+                            { from: "SYNTETYKÓW", to: "SYNTETYKÓWKA" },
+                            { from: "HUTNICZE", to: "HUTNICTWO" },
+                            { from: "ŚWIATŁOCIENIA", to: "ŚWIATŁOENIA" },
+                            { from: "MIASTO", to: "MIASTECZKO" },
+                            { from: "ŚWIATŁA", to: "ŚWIATŁAŃSK" }
+                        ];
+                        let replaced = false;
+                        for (let t of typoMap) {
+                            if (originalStop.includes(t.from)) {
+                                docStation = originalStop.replace(t.from, t.to);
+                                replaced = true;
+                                break;
+                            }
+                        }
+                        if (!replaced) docStation = originalStop.replace("PRZYSTANEK", "PRZYSTANKI");
+                        docAnomalies.push(`Poważna literówka w nazwie stacji docelowej: "${docStation}" zamiast "${originalStop}"!`);
+                        break;
+                    case 'fake_id_format':
+                        const realId = docId;
+                        const digits = realId.replace('ID-', '').split('');
+                        let idx1 = Math.floor(Math.random() * digits.length);
+                        let idx2;
+                        do {
+                            idx2 = Math.floor(Math.random() * digits.length);
+                        } while (idx1 === idx2);
+
+                        digits[idx1] = ((parseInt(digits[idx1]) + 3) % 10).toString();
+                        digits[idx2] = ((parseInt(digits[idx2]) + 5) % 10).toString();
+
+                        const fakeId = `ID-${digits.join('')}`;
+                        docId = fakeId;
+
+                        manifestData.push({ name, id: realId, station: targetStation, job: docJob, shift: officialShift.label, vitalStatus: 'ŻYJĄCY' });
+                        renderManifestUI();
+
+                        docAnomalies.push(`Sfałszowane ID na bilecie (${fakeId})! Dwie cyfry różnią się od rejestru w BAZIE VIT (${realId}).`);
+                        break;
+                    case 'mismatched_vit_shift':
+                        let fakeShift;
+                        do {
+                            fakeShift = SHIFT_HOURS_LIST[Math.floor(Math.random() * SHIFT_HOURS_LIST.length)];
+                        } while (fakeShift.label === officialShift.label);
+                        docSchedule = `Zmiana od godz. ${fakeShift.label}`;
+                        docAnomalies.push(`Godzina pracy na bilecie (${fakeShift.label}) różni się od oficjalnego rejestru VIT (${officialShift.label})!`);
+                        break;
+                    case 'time_contradiction':
+                        if (clockTimeMinutes > officialShift.minutes) {
+                            mentionsLate = false; 
+                            docAnomalies.push(`Pasażer twierdzi, że rozpoczyna zmianę o ${officialShift.label}, ale jest po czasie (${getFormattedTime()}) i NIE zgłosił spóźnienia!`);
+                        } else {
+                            docSchedule = "Zmiana od godz. 12:00 rano";
+                            docAnomalies.push("Karta wskazuje zmianę w środku dnia, niepasującą do nocnej trasy.");
+                        }
+                        break;
+                    case 'impersonate_dead':
+                        const deadName = getRandomName();
+                        const deadId = generateValidPassengerID();
+                        docName = deadName;
+                        docId = deadId;
+                        docAnomalies.push(`Pasażer podszywa się pod osobę (${deadName}), która w bazie danych widnieje jako ZMARŁA!`);
+                        manifestData.push({ name: deadName, id: deadId, station: targetStation, job: docJob, shift: officialShift.label, vitalStatus: 'ZMARŁY' });
+                        renderManifestUI();
+                        break;
+                    case 'too_early_shift':
+                        const farShifts = SHIFT_HOURS_LIST.filter(s => (s.minutes - clockTimeMinutes) > 180);
+                        if (farShifts.length > 0) {
+                            officialShift = farShifts[Math.floor(Math.random() * farShifts.length)];
+                        } else {
+                            officialShift = SHIFT_HOURS_LIST[SHIFT_HOURS_LIST.length - 1];
+                        }
+                        docSchedule = `Zmiana od godz. ${officialShift.label}`;
+                        docAnomalies.push(`Zbyt wczesna podróż! Pasażer jedzie do pracy z ponad 3-godzinnym wyprzedzeniem (zmiana o ${officialShift.label}).`);
+                        break;
+                    case 'fake_stamp':
+                        const fakeStampsList = ["N.R.13", "M.P.13", "M.R.19", "N.P.13", "M.R.31"];
+                        docStamp = fakeStampsList[Math.floor(Math.random() * fakeStampsList.length)];
+                        docAnomalies.push(`Sfałszowany stempel trasy na bilecie: "${docStamp}" zamiast oficjalnego "M.R.13"!`);
+                        break;
+                }
+            } else {
+                manifestData.push({ name, id: docId, station: targetStation, job: docJob, shift: officialShift.label, vitalStatus: 'ŻYJĄCY' });
+                renderManifestUI();
+            }
+
+            let responseJob = `Pracuję jako ${jobTitle}. Moja zmiana rozpoczyna się o godz. ${officialShift.label}.`;
+            let responseReason = mentionsLate 
+                ? `Spóźniłem się na zmianę o ${officialShift.label}! Uciekł mi poprzedni autobus i bardzo się śpieszę.`
+                : `Jadę spokojnie na moją zmianę o ${officialShift.label}. Zawsze zaczynam o tej porze.`;
+
+            return {
+                isDoppelganger,
+                anomalyType,
+                physicalAnomalies,
+                docAnomalies,
+                realData: { name, id: docId, station: targetStation, job: docJob, shift: officialShift.label, features: realFeatures },
+                docData: { name: docName, id: docId, station: docStation, job: docJob, schedule: docSchedule, stamp: docStamp },
+                responses: { job: responseJob, reason: responseReason },
+                currentFeatures
+            };
+        }
+
+        function drawCharacter(targetCtx, centerX, bottomY, headRadius, features, isPhoto = false) {
+            if (isPhoto) {
+                targetCtx.fillStyle = "#000000";
+                targetCtx.fillRect(0, 0, idPhotoCanvas.width, idPhotoCanvas.height);
+            }
+
+            const headY = bottomY - headRadius * 3.8;
+
+            targetCtx.fillStyle = features.isClownMakeup ? '#581c87' : '#1e293b';
+            targetCtx.beginPath();
+            targetCtx.moveTo(centerX - headRadius * 1.5, bottomY);
+            targetCtx.lineTo(centerX - headRadius * 1.1, headY + headRadius * 1.3);
+            targetCtx.lineTo(centerX - headRadius * 0.5, headY + headRadius * 0.9);
+            targetCtx.lineTo(centerX + headRadius * 0.5, headY + headRadius * 0.9);
+            targetCtx.lineTo(centerX + headRadius * 1.1, headY + headRadius * 1.3);
+            targetCtx.lineTo(centerX + headRadius * 1.5, bottomY);
+            targetCtx.closePath();
+            targetCtx.fill();
+
+            targetCtx.fillStyle = features.skinColor;
+            targetCtx.fillRect(centerX - headRadius * 0.3, headY + headRadius * 0.6, headRadius * 0.6, headRadius * 0.5);
+
+            targetCtx.beginPath();
+            targetCtx.arc(centerX, headY, headRadius, 0, Math.PI * 2);
+            targetCtx.fill();
+
+            if (features.isClownMakeup) {
+                targetCtx.fillStyle = '#dc2626';
+                targetCtx.beginPath();
+                targetCtx.arc(centerX, headY + headRadius * 0.15, headRadius * 0.28, 0, Math.PI * 2);
+                targetCtx.fill();
+
+                targetCtx.fillStyle = '#2563eb';
+                targetCtx.beginPath();
+                targetCtx.arc(centerX - headRadius * 0.35, headY - headRadius * 0.05, headRadius * 0.25, 0, Math.PI * 2);
+                targetCtx.arc(centerX + headRadius * 0.35, headY - headRadius * 0.05, headRadius * 0.25, 0, Math.PI * 2);
+                targetCtx.fill();
+            }
+
+            const eyeY = headY - headRadius * 0.05;
+            const eyeOffset = headRadius * 0.35;
+
+            const drawEye = (ex, ey) => {
+                targetCtx.fillStyle = '#ffffff';
+                targetCtx.beginPath();
+                targetCtx.arc(ex, ey, isPhoto ? 4 : headRadius * 0.18, 0, Math.PI * 2);
+                targetCtx.fill();
+
+                targetCtx.fillStyle = '#000000';
+                targetCtx.beginPath();
+                targetCtx.arc(ex, ey, isPhoto ? 2 : headRadius * 0.08, 0, Math.PI * 2);
+                targetCtx.fill();
+            };
+
+            if (features.eyeCount === 2) {
+                drawEye(centerX - eyeOffset, eyeY);
+                drawEye(centerX + eyeOffset, eyeY);
+            } else if (features.eyeCount === 3) {
+                drawEye(centerX - eyeOffset, eyeY);
+                drawEye(centerX + eyeOffset, eyeY);
+                drawEye(centerX, eyeY - headRadius * 0.45);
+            }
+
+            const mouthY = headY + headRadius * 0.45;
+            if (features.isClownMakeup) {
+                targetCtx.fillStyle = '#b91c1c';
+                targetCtx.beginPath();
+                targetCtx.arc(centerX, mouthY - headRadius * 0.1, headRadius * 0.5, 0, Math.PI);
+                targetCtx.fill();
+            } else if (features.teethType === 'sharp') {
+                targetCtx.fillStyle = '#7f1d1d';
+                targetCtx.fillRect(centerX - headRadius * 0.35, mouthY - 4, headRadius * 0.7, headRadius * 0.25);
+                targetCtx.fillStyle = '#ffffff';
+                for (let i = -headRadius * 0.3; i < headRadius * 0.3; i += 5) {
+                    targetCtx.beginPath();
+                    targetCtx.moveTo(centerX + i, mouthY - 4);
+                    targetCtx.lineTo(centerX + i + 2.5, mouthY + 6);
+                    targetCtx.lineTo(centerX + i + 5, mouthY - 4);
+                    targetCtx.fill();
+                }
+            } else {
+                targetCtx.strokeStyle = 'rgba(0,0,0,0.6)';
+                targetCtx.lineWidth = 2;
+                targetCtx.beginPath();
+                targetCtx.arc(centerX, mouthY - headRadius * 0.1, headRadius * 0.25, 0.2, Math.PI - 0.2);
+                targetCtx.stroke();
+            }
+
+            if (features.hairStyle !== 'bald') {
+                targetCtx.fillStyle = features.hairColor;
+                if (features.hairStyle === 'short') {
+                    targetCtx.beginPath();
+                    targetCtx.arc(centerX, headY - headRadius * 0.2, headRadius * 1.02, Math.PI * 1.05, Math.PI * 1.95);
+                    targetCtx.fill();
+                } else if (features.hairStyle === 'fringe') {
+                    targetCtx.beginPath();
+                    targetCtx.arc(centerX, headY - headRadius * 0.15, headRadius * 1.04, Math.PI * 0.95, Math.PI * 2.05);
+                    targetCtx.fill();
+                } else if (features.hairStyle === 'curly') {
+                    for (let a = Math.PI; a <= Math.PI * 2; a += 0.4) {
+                        const hx = centerX + Math.cos(a) * (headRadius * 0.95);
+                        const hy = headY - headRadius * 0.2 + Math.sin(a) * (headRadius * 0.85);
+                        targetCtx.beginPath();
+                        targetCtx.arc(hx, hy, headRadius * 0.35, 0, Math.PI * 2);
+                        targetCtx.fill();
+                    }
+                } else if (features.hairStyle === 'long_sides') {
+                    targetCtx.beginPath();
+                    targetCtx.arc(centerX, headY - headRadius * 0.2, headRadius * 1.05, Math.PI * 0.9, Math.PI * 2.1);
+                    targetCtx.fill();
+                    targetCtx.fillRect(centerX - headRadius * 1.1, headY - headRadius * 0.2, headRadius * 0.3, headRadius * 0.9);
+                    targetCtx.fillRect(centerX + headRadius * 0.8, headY - headRadius * 0.2, headRadius * 0.3, headRadius * 0.9);
+                } else if (features.hairStyle === 'cap') {
+                    targetCtx.fillStyle = '#1e3a8a';
+                    targetCtx.beginPath();
+                    targetCtx.arc(centerX, headY - headRadius * 0.3, headRadius * 1.05, Math.PI * 1.0, Math.PI * 2.0);
+                    targetCtx.fill();
+                    targetCtx.fillStyle = '#0f172a';
+                    targetCtx.fillRect(centerX - headRadius * 1.1, headY - headRadius * 0.35, headRadius * 2.2, headRadius * 0.22);
+                }
+            }
+        }
+
+        function renderScene() {
+            const w = gameCanvas.width;
+            const h = gameCanvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.fillStyle = '#020408';
+            ctx.fillRect(0, 0, w, h);
+
+            const horizonY = h * 0.42;
+            ctx.fillStyle = '#0a0f18';
+            ctx.fillRect(0, horizonY, w, h - horizonY);
+
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(w * 0.05, h);
+            ctx.lineTo(w * 0.4, horizonY);
+            ctx.moveTo(w * 0.85, h);
+            ctx.lineTo(w * 0.6, horizonY);
+            ctx.stroke();
+
+            if (state === 'DRIVING') {
+                roadOffset += 2.0 * gameModifiers.speedMultiplier;
+                if (roadOffset >= 60) roadOffset = 0;
+            }
+
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 5;
+            const totalDashes = 10;
+            for (let i = 0; i < totalDashes; i++) {
+                let progress = ((i * 60 + roadOffset) % (totalDashes * 60)) / (totalDashes * 60);
+                let startY = horizonY + progress * (h - horizonY);
+                let endY = startY + (progress * 25) + 5;
+
+                if (startY < h && endY > horizonY) {
+                    ctx.beginPath();
+                    ctx.moveTo(w * 0.5, startY);
+                    ctx.lineTo(w * 0.5, endY);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 35; i++) {
+                const rx = (Math.sin(i * 19 + Date.now() * 0.003) * 0.5 + 0.5) * w;
+                const ry = (Math.cos(i * 29 + Date.now() * 0.005) * 0.5 + 0.5) * h;
+                ctx.beginPath();
+                ctx.moveTo(rx, ry);
+                ctx.lineTo(rx - 6, ry + 22);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, w, h * 0.12);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.12);
+            ctx.lineTo(w, h * 0.12);
+            ctx.stroke();
+
+            const busFloorY = h * 0.80;
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.68);
+            ctx.lineTo(w * 0.65, h * 0.68);
+            ctx.lineTo(w * 0.65, h);
+            ctx.lineTo(0, h);
+            ctx.fill();
+
+            ctx.fillStyle = '#030712';
+            ctx.fillRect(w * 0.65, busFloorY, w * 0.35, h - busFloorY);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(w * 0.65, busFloorY, w * 0.35, h - busFloorY);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(w * 0.22, h + 80, w * 0.16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            if ((state === 'AT_STOP' || state === 'MONSTER_ATTACK') && currentPassenger) {
+                const px = w * 0.82;
+                const bottomY = h - 15;
+                const pradius = Math.min(w, h) * 0.08;
+
+                passengerBoundingBox = {
+                    x: w * 0.65,
+                    y: h * 0.20,
+                    width: w * 0.35,
+                    height: h * 0.78
+                };
+
+                drawCharacter(ctx, px, bottomY, pradius, currentPassenger.currentFeatures, false);
+
+                if (purgeAnimationTimer > 0) {
+                    purgeAnimationTimer--;
+
+                    // Błysk wystrzału z pistoletu (Muzzle Flash)
+                    if (purgeAnimationTimer > 16) {
+                        ctx.fillStyle = `rgba(255, 220, 110, ${(purgeAnimationTimer - 16) / 6 * 0.7})`;
+                        ctx.fillRect(0, 0, w, h);
+                    }
+
+                    // Ślad po kuli na klatce piersiowej pasażera
+                    const bulletX = px;
+                    const bulletY = bottomY - pradius * 2.1;
+
+                    // Plama krwi
+                    ctx.fillStyle = '#7a0000';
+                    ctx.beginPath();
+                    ctx.arc(bulletX, bulletY, pradius * 0.28, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Wlot po kuli
+                    ctx.fillStyle = '#0a0000';
+                    ctx.beginPath();
+                    ctx.arc(bulletX, bulletY, pradius * 0.1, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Fala uderzeniowa / dym wokół rany
+                    ctx.strokeStyle = '#ffaa00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(bulletX, bulletY, pradius * (0.12 + (22 - purgeAnimationTimer) * 0.015), 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            if (state === 'MONSTER_ATTACK') {
+                const elapsed = Date.now() - attackStartTime;
+                const progress = Math.min(1.0, elapsed / 4000);
+
+                drawMonsterAttackAnimation(ctx, w, h, progress);
+
+                if (progress >= 1.0 && pendingMonsterPassenger) {
+                    const victim = pendingMonsterPassenger;
+                    pendingMonsterPassenger = null;
+                    state = 'GAME_OVER';
+                    triggerGameOver(`Wpuściłeś Doppelgangera (${victim.docData.name}) do autobusu!`, victim);
+                }
+            }
+
+            requestAnimationFrame(renderScene);
+        }
+
+        function drawMonsterAttackAnimation(targetCtx, w, h, progress) {
+            targetCtx.fillStyle = `rgba(10, 2, 2, ${progress * 0.85})`;
+            targetCtx.fillRect(0, 0, w, h);
+
+            const leftX = -300 + progress * (w * 0.48 + 300);
+            const rightX = (w + 300) - progress * (w * 0.48 + 300);
+            const centerY = h * 0.52;
+
+            const drawCreepyHand = (x, y, isLeft) => {
+                const dir = isLeft ? 1 : -1;
+                targetCtx.save();
+
+                targetCtx.fillStyle = '#2d1810';
+                targetCtx.strokeStyle = '#140a06';
+                targetCtx.lineWidth = 5;
+
+                const edgeX = isLeft ? -120 : w + 120;
+
+                targetCtx.beginPath();
+                targetCtx.moveTo(edgeX, y - 140);
+                targetCtx.lineTo(x, y - 55);
+                targetCtx.lineTo(x + dir * 45, y);
+                targetCtx.lineTo(x, y + 55);
+                targetCtx.lineTo(edgeX, y + 140);
+                targetCtx.closePath();
+                targetCtx.fill();
+                targetCtx.stroke();
+
+                targetCtx.beginPath();
+                targetCtx.arc(x + dir * 20, y, 45, 0, Math.PI * 2);
+                targetCtx.fill();
+                targetCtx.stroke();
+
+                const fingerAngles = [-0.38, 0.0, 0.38];
+                fingerAngles.forEach((angle, idx) => {
+                    targetCtx.beginPath();
+                    const startX = x + dir * 30;
+                    const startY = y + angle * 40;
+
+                    const j1X = startX + dir * Math.cos(angle) * 110;
+                    const j1Y = startY + Math.sin(angle) * 95;
+
+                    const bend = isLeft ? (idx === 0 ? 0.3 : (idx === 2 ? -0.3 : 0.1)) : (idx === 0 ? -0.3 : (idx === 2 ? 0.3 : -0.1));
+                    const tipX = j1X + dir * Math.cos(angle + bend) * 120;
+                    const tipY = j1Y + Math.sin(angle + bend) * 105;
+
+                    targetCtx.lineWidth = 18;
+                    targetCtx.lineCap = 'round';
+                    targetCtx.lineJoin = 'round';
+                    targetCtx.strokeStyle = '#2d1810';
+                    targetCtx.moveTo(startX, startY);
+                    targetCtx.lineTo(j1X, j1Y);
+                    targetCtx.lineTo(tipX, tipY);
+                    targetCtx.stroke();
+
+                    targetCtx.lineWidth = 6;
+                    targetCtx.strokeStyle = '#140a06';
+                    targetCtx.stroke();
+
+                    targetCtx.fillStyle = '#100502';
+                    targetCtx.beginPath();
+                    targetCtx.arc(tipX, tipY, 10, 0, Math.PI * 2);
+                    targetCtx.fill();
+                });
+
+                targetCtx.restore();
+            };
+
+            drawCreepyHand(leftX, centerY, true);
+            drawCreepyHand(rightX, centerY, false);
+        }
+
+        function renderManifestUI() {
+            const container = document.getElementById('manifest-list');
+            container.innerHTML = '';
+            manifestData.forEach((item, index) => {
+                const isDead = item.vitalStatus === 'ZMARŁY';
+                const card = document.createElement('div');
+                card.className = `p-1.5 rounded flex justify-between items-center border ${isDead ? 'bg-red-950/40 border-red-800' : 'bg-green-950/40 border-green-800/60'}`;
+                card.innerHTML = `
+                    <div>
+                        <span class="font-bold block leading-none ${isDead ? 'text-red-400' : 'text-yellow-300'}">${index + 1}. ${item.name}</span>
+                        <span class="text-[10px] text-gray-400 font-tech">ZAWÓD: ${item.job} (${item.shift})</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-tech block ${isDead ? 'text-red-400 font-bold glow-red' : 'text-green-300'}">${item.id}</span>
+                        <span class="text-[9px] font-tech px-1 py-0.2 rounded ${isDead ? 'bg-red-900 text-red-200' : 'bg-green-900 text-green-300'}">STAN VIT: ${item.vitalStatus}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderRouteStopsUI() {
+            const container = document.getElementById('route-stops-list');
+            container.innerHTML = '';
+            OFFICIAL_STOPS.forEach((stop) => {
+                const div = document.createElement('div');
+                div.className = "p-1 bg-green-950/30 border border-green-900 rounded font-tech text-yellow-300";
+                div.innerText = stop;
+                container.appendChild(div);
+            });
+        }
+
+        function loadCurrentQueuePassenger() {
+            currentPassenger = passengerQueue[activeQueueIndex];
+
+            if (currentPassenger && currentPassenger.isClown) {
+                document.getElementById('driver-tablet').classList.add('tablet-hidden');
+                document.getElementById('passenger-modal').classList.add('hidden');
+                showToast("🤡 KLAUN PRZEZNACZENIA STANĄŁ W DRZWIACH! KLIKNIJ NA NIEGO NA SCHODACH.", 5000);
+                return;
+            }
+
+            document.getElementById('driver-tablet').classList.remove('tablet-hidden');
+            document.getElementById('doc-queue-status').innerText = `OSOBA ${activeQueueIndex + 1}/${passengerQueue.length}`;
+            document.getElementById('queue-badge').classList.remove('hidden');
+            document.getElementById('queue-count-val').innerText = `${activeQueueIndex + 1} / ${passengerQueue.length}`;
+
+            document.getElementById('doc-id-val').innerText = currentPassenger.docData.id;
+            document.getElementById('doc-name').innerText = currentPassenger.docData.name;
+            document.getElementById('doc-job').innerText = currentPassenger.docData.job;
+            document.getElementById('doc-job-schedule').innerText = currentPassenger.docData.schedule;
+            document.getElementById('doc-station').innerText = currentPassenger.docData.station;
+            
+            const stampEl = document.getElementById('doc-stamp');
+            stampEl.innerText = currentPassenger.docData.stamp || "M.R.13";
+            if (currentPassenger.docData.stamp && currentPassenger.docData.stamp !== "M.R.13") {
+                stampEl.className = "w-16 h-16 sm:w-20 sm:h-20 border-2 sm:border-3 border-red-500 text-red-400 rounded-full flex items-center justify-center font-bold text-sm sm:text-base font-tech rotate-[-12deg] tracking-wider shadow-lg shrink-0 bg-red-950/50 glow-red";
+            } else {
+                stampEl.className = "w-16 h-16 sm:w-20 sm:h-20 border-2 sm:border-3 border-yellow-400 text-yellow-300 rounded-full flex items-center justify-center font-bold text-sm sm:text-base font-tech rotate-[-12deg] tracking-wider shadow-lg shrink-0 bg-yellow-950/40 glow-yellow";
+            }
+
+            drawCharacter(idPhotoCtx, idPhotoCanvas.width / 2, idPhotoCanvas.height - 10, 26, currentPassenger.realData.features, true);
+        }
+
+        function triggerClownCardEvent() {
+            isClownEventActive = true;
+            document.getElementById('driver-tablet').classList.add('tablet-hidden');
+            document.getElementById('passenger-modal').classList.add('hidden');
+
+            const goodPool = [
+                { id: 'MINUS_2_HUMANS', title: '✨ ŁASKA LOSU: -2 Wymaganych Ludzi', desc: 'Liczba wymaganych pasażerów do ukończenia zmiany zmniejsza się o 2 osoby!', type: 'GOOD' },
+                { id: 'RESTORE_SANITY', title: '🧠 CZYŚCZENIE UMYSŁU: -1 Niepoczytalność', desc: 'Odzyskujesz jasność umysłu! Odejmuje 1 punkt błędu poczytalności.', type: 'GOOD' },
+                { id: 'SKIP_2_HOURS', title: '⏳ SKOK CZASOWY: +2 Godziny Do Przodu', desc: 'Czas systemowy przeskakuje natychmiast o 2 godziny w przód ku końcowi zmiany (06:45)!', type: 'GOOD' },
+                { id: 'FAST_TRAVEL', title: '⚡ TURBO PRĘDKOŚĆ: Szybsza Trasa', desc: 'Pojazd porusza się o 60% szybciej między przystankami!', type: 'GOOD' }
+            ];
+
+            const badPool = [
+                { id: 'PLUS_2_HUMANS', title: '💀 KLĄTWA MAS: +2 Wymaganych Ludzi', desc: 'Liczba wymaganych pasażerów wzrasta o kolejne 2 osoby!', type: 'BAD' },
+                { id: 'DOPPELGANGER_INVASION', title: '👹 ZMASOWANY ATAK DOPPELGANGERÓW (2-5 OSOB)', desc: 'Na kolejnych przystankach pojawiać się będzie od 2 do 5 osób, a większość to potwory!', type: 'BAD' },
+                { id: 'SLOW_TRAVEL', title: '🐢 AWARIA SILNIKA: Wolniejsza Trasa', desc: 'Autobus porusza się wolniej między przystankami!', type: 'BAD' }
+            ];
+
+            const chosenGood = goodPool[Math.floor(Math.random() * goodPool.length)];
+            
+            let bad1 = badPool[Math.floor(Math.random() * badPool.length)];
+            let bad2;
+            do {
+                bad2 = badPool[Math.floor(Math.random() * badPool.length)];
+            } while (bad1.id === bad2.id && badPool.length > 1);
+
+            clownCards = [chosenGood, bad1, bad2];
+            clownCards.sort(() => Math.random() - 0.5);
+
+            const container = document.getElementById('clown-cards-container');
+            container.innerHTML = '';
+
+            // Render 3 face-down cards showing ONLY card icons (no text/description)
+            clownCards.forEach((card, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "clown-card-btn h-36 sm:h-44 bg-gradient-to-b from-purple-900 via-indigo-950 to-black border-2 border-purple-400 hover:border-yellow-400 rounded-xl flex flex-col justify-center items-center cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-2xl group";
+                btn.innerHTML = `
+                    <div class="text-4xl sm:text-5xl group-hover:rotate-12 transition-transform">🃏</div>
+                `;
+                btn.addEventListener('click', () => selectClownCard(idx, bad1, bad2));
+                container.appendChild(btn);
+            });
+
+            const shootBtn = document.getElementById('btn-shoot-clown');
+            shootBtn.disabled = false;
+            shootBtn.onclick = () => shootClown(bad1, bad2);
+
+            document.getElementById('btn-confirm-clown').classList.add('hidden');
+            document.getElementById('clown-dialogue-text').innerText = `"Hahaha! Witam Pana Kierowcę na 2 ZMIANIE! Czas na małą grę hazardową... Wybierz JEDNĄ kartę! Pamiętaj: 2 są przeklęte, a tylko 1 łaskawa!"`;
+            document.getElementById('clown-modal').classList.remove('hidden');
+        }
+
+        function applyClownEffect(card) {
+            if (card.id === 'MINUS_2_HUMANS') {
+                targetHumansCount = Math.max(1, targetHumansCount - 2);
+            } else if (card.id === 'PLUS_2_HUMANS') {
+                targetHumansCount += 2;
+            } else if (card.id === 'RESTORE_SANITY') {
+                sanityErrors = Math.max(0, sanityErrors - 1);
+            } else if (card.id === 'SKIP_2_HOURS') {
+                clockTimeMinutes += 120;
+            } else if (card.id === 'FAST_TRAVEL') {
+                gameModifiers.speedMultiplier = 1.6;
+            } else if (card.id === 'SLOW_TRAVEL') {
+                gameModifiers.speedMultiplier = 0.65;
+            } else if (card.id === 'DOPPELGANGER_INVASION') {
+                gameModifiers.stopMinQueue = 2;
+                gameModifiers.stopMaxQueue = 5;
+                gameModifiers.doppelgangerChance = 0.78;
+            }
+
+            document.getElementById('human-counter').innerText = `${humansBoarded} / ${targetHumansCount}`;
+            document.getElementById('sanity-counter').innerText = `${Math.max(0, 3 - sanityErrors)}`;
+            document.getElementById('time-display').innerText = getFormattedTime();
+        }
+
+        function selectClownCard(cardIndex) {
+            audio.playClick();
+            const card = clownCards[cardIndex];
+
+            applyClownEffect(card);
+
+            const cardBtns = document.querySelectorAll('.clown-card-btn');
+            cardBtns.forEach((btn, idx) => {
+                btn.disabled = true;
+                const cardItem = clownCards[idx];
+                const isGood = cardItem.type === 'GOOD';
+                btn.className = `h-36 sm:h-44 border-2 rounded-xl flex flex-col justify-between items-center p-2 transition-all ${isGood ? 'bg-green-950/90 border-green-400' : 'bg-red-950/90 border-red-500'}`;
+                btn.innerHTML = `
+                    <span class="text-[10px] font-tech ${isGood ? 'text-green-300' : 'text-red-300'}">${isGood ? '✨ DOBRA' : '💀 ZŁA'}</span>
+                    <div class="text-3xl">${isGood ? '🎁' : '👹'}</div>
+                    <span class="text-[9px] font-bold text-center leading-tight font-tech ${isGood ? 'text-green-200' : 'text-red-200'}">${cardItem.title}</span>
+                `;
+            });
+
+            document.getElementById('btn-shoot-clown').disabled = true;
+            document.getElementById('btn-shoot-clown').classList.add('opacity-40');
+
+            const isGood = card.type === 'GOOD';
+            const dialogueEl = document.getElementById('clown-dialogue-text');
+            dialogueEl.innerHTML = isGood 
+                ? `<span class="text-green-400 font-bold not-italic">"HAHAHA! ODKRYŁEŚ ŁASKAVĄ KARTĘ!"</span><br/>Otrzymujesz: <strong class="text-yellow-300">${card.title}</strong> — ${card.desc}`
+                : `<span class="text-red-400 font-bold not-italic">"HIHIHI! WYBRAŁEŚ PRZEKLĘTĄ KARTĘ!"</span><br/>Dopadło Cię: <strong class="text-red-300">${card.title}</strong> — ${card.desc}`;
+
+            const confirmBtn = document.getElementById('btn-confirm-clown');
+            confirmBtn.innerText = "KLAUN ZNIKA W MGLI ➔";
+            confirmBtn.classList.remove('hidden');
+        }
+
+        function shootClown(bad1, bad2) {
+            audio.playGunshot();
+            purgeAnimationTimer = 22;
+
+            applyClownEffect(bad1);
+            applyClownEffect(bad2);
+
+            const cardBtns = document.querySelectorAll('.clown-card-btn');
+            cardBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-30');
+            });
+
+            const shootBtn = document.getElementById('btn-shoot-clown');
+            shootBtn.disabled = true;
+            shootBtn.classList.add('opacity-30');
+
+            const dialogueEl = document.getElementById('clown-dialogue-text');
+            dialogueEl.innerHTML = `
+                <span class="text-red-500 font-bold glow-red not-italic text-base sm:text-xl">"GRRRR! CHCESZ STRZELAĆ DO KLAUNA PRZEZNACZENIA?!"</span><br/>
+                <span class="text-red-300">"Nikt nie mierzy do mnie z pistoletu! Zostajesz ukarany PODWÓJNĄ KLĄTWĄ!"</span><br/><br/>
+                <span class="text-yellow-300 text-xs sm:text-sm">
+                    1) 💀 <strong>${bad1.title}</strong>: ${bad1.desc}<br/>
+                    2) 💀 <strong>${bad2.title}</strong>: ${bad2.desc}
+                </span>
+            `;
+
+            const confirmBtn = document.getElementById('btn-confirm-clown');
+            confirmBtn.innerText = "KLAUN WKURZA SIĘ I ZNIKA W MGLI ➔";
+            confirmBtn.classList.remove('hidden');
+        }
+
+        document.getElementById('btn-confirm-clown').addEventListener('click', () => {
+            audio.playClick();
+            document.getElementById('clown-modal').classList.add('hidden');
+            isClownEventActive = false;
+            advanceQueueOrDrive();
+        });
+
+        function checkEndShiftEvaluation() {
+            gameActive = false;
+            document.getElementById('driver-tablet').classList.add('tablet-hidden');
+            document.getElementById('passenger-modal').classList.add('hidden');
+
+            if (letInDoppelgangers.length > 0) {
+                const monster = letInDoppelgangers[0];
+                audio.playScream();
+                state = 'MONSTER_ATTACK';
+                attackStartTime = Date.now();
+                pendingMonsterPassenger = monster;
+            } else if (sanityErrors >= 3) {
+                triggerGameOver("Przegrana pod koniec zmiany: Straciłeś poczytalność po przekroczeniu limitu dopuszczalnych pomyłek i zastrzeleniu zbyt wielu pasażerów.", null);
+            } else {
+                document.getElementById('win-reason-text').innerText = `Ukończyłeś ${currentShift} ZMIANĘ! Przetrwałeś i dowiozłeś bezpiecznie pasażerów.`;
+                document.getElementById('win-screen').classList.remove('hidden');
+            }
+        }
+
+        function updateDrivingProgress() {
+            if (!gameActive || state !== 'DRIVING') return;
+
+            clockTimeMinutes += 1;
+            document.getElementById('time-display').innerText = getFormattedTime();
+
+            if (clockTimeMinutes >= END_TIME_MINUTES) {
+                checkEndShiftEvaluation();
+                return;
+            }
+
+            distanceRemaining -= 15 * gameModifiers.speedMultiplier;
+            if (distanceRemaining <= 0) {
+                state = 'AT_STOP';
+                audio.playBrakeSound();
+
+                const minQ = gameModifiers.stopMinQueue;
+                const maxQ = gameModifiers.stopMaxQueue;
+                const count = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ;
+                passengerQueue = [];
+                activeQueueIndex = 0;
+
+                for (let i = 0; i < count; i++) {
+                    const isDoppel = Math.random() < gameModifiers.doppelgangerChance;
+                    passengerQueue.push(generatePassenger(isDoppel));
+                }
+
+                document.getElementById('vehicle-status').innerText = "PRZYSTANEK (PASAŻER W DRZWIACH)";
+                loadCurrentQueuePassenger();
+            }
+        }
+
+        setInterval(updateDrivingProgress, 250);
+
+        gameCanvas.addEventListener('click', (e) => {
+            if (state !== 'AT_STOP' || !currentPassenger) return;
+
+            const rect = gameCanvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            if (clickX >= passengerBoundingBox.x && clickX <= passengerBoundingBox.x + passengerBoundingBox.width &&
+                clickY >= passengerBoundingBox.y && clickY <= passengerBoundingBox.y + passengerBoundingBox.height) {
+                
+                audio.playClick();
+                if (currentPassenger.isClown) {
+                    triggerClownCardEvent();
+                } else {
+                    document.getElementById('passenger-modal').classList.remove('hidden');
+                }
+            }
+        });
+
+        function triggerGameOver(reason, passenger) {
+            gameActive = false;
+            document.getElementById('driver-tablet').classList.add('tablet-hidden');
+            document.getElementById('gameover-reason').innerText = reason;
+
+            if (letInDoppelgangers.length > 0) {
+                const nameContainer = document.getElementById('pm-monster-name');
+                nameContainer.innerHTML = letInDoppelgangers.map((monster, idx) => `
+                    <div class="bg-red-950/60 border border-red-800 p-1.5 rounded flex justify-between items-center text-xs">
+                        <div>
+                            <span class="text-yellow-300 font-bold block">${idx + 1}. ${monster.docData.name}</span>
+                            <span class="text-[10px] text-gray-400 font-tech">WYKRYTY DOPPELGANGER</span>
+                        </div>
+                        <span class="text-red-400 font-bold font-tech border border-red-700 px-1 rounded bg-black/60">${monster.docData.id}</span>
+                    </div>
+                `).join('');
+
+                const physList = document.getElementById('pm-physical-list');
+                physList.innerHTML = '';
+                let hasPhys = false;
+
+                const docList = document.getElementById('pm-doc-list');
+                docList.innerHTML = '';
+                let hasDocs = false;
+
+                letInDoppelgangers.forEach(monster => {
+                    monster.physicalAnomalies.forEach(a => {
+                        hasPhys = true;
+                        const li = document.createElement('li');
+                        li.innerText = `[${monster.docData.name}] ${a}`;
+                        physList.appendChild(li);
+                    });
+
+                    monster.docAnomalies.forEach(a => {
+                        hasDocs = true;
+                        const li = document.createElement('li');
+                        li.innerText = `[${monster.docData.name}] ${a}`;
+                        docList.appendChild(li);
+                    });
+                });
+
+                if (!hasPhys) physList.innerHTML = '<li>Brak widocznych deformacji fizycznych u wpuszczonych istot.</li>';
+                if (!hasDocs) docList.innerHTML = '<li>Błędy w danych biletu lub statusie życiowym.</li>';
+
+                document.getElementById('pm-hint-text').innerText = "Sprawdzaj stempel M.R.13, porzucaj doppelgangerów ze złą nazwą stacji oraz sprawdzaj BAZĘ VIT!";
+
+            } else if (passenger && passenger.isDoppelganger) {
+                document.getElementById('pm-monster-name').innerText = `${passenger.docData.name} (${passenger.docData.id})`;
+
+                const physList = document.getElementById('pm-physical-list');
+                physList.innerHTML = '';
+                if (passenger.physicalAnomalies.length > 0) {
+                    passenger.physicalAnomalies.forEach(a => {
+                        const li = document.createElement('li');
+                        li.innerText = a;
+                        physList.appendChild(li);
+                    });
+                } else {
+                    physList.innerHTML = '<li>Brak widocznych deformacji fizycznych.</li>';
+                }
+
+                const docList = document.getElementById('pm-doc-list');
+                docList.innerHTML = '';
+                if (passenger.docAnomalies.length > 0) {
+                    passenger.docAnomalies.forEach(a => {
+                        const li = document.createElement('li');
+                        li.innerText = a;
+                        docList.appendChild(li);
+                    });
+                } else {
+                    docList.innerHTML = '<li>Przeoczony fałszywy bilet, stempel lub status zmarłego!</li>';
+                }
+
+                document.getElementById('pm-hint-text').innerText = "Weryfikuj pieczątkę M.R.13, nazwę stacji z mapą oraz status życiowy w bazie VIT!";
+
+            } else {
+                document.getElementById('pm-monster-name').innerText = "Utrata Poczytalności Kierowcy";
+                document.getElementById('pm-physical-list').innerHTML = "<li>Zastrzeliłeś zbyt wielu żywych, prawdziwych ludzi.</li>";
+                document.getElementById('pm-doc-list').innerHTML = "<li>Pomyłkowe zastrzelenie niewinnych obywateli.</li>";
+                document.getElementById('pm-hint-text').innerText = "Używaj broni palnej wyłącznie wobec potworów i oszustów z bazy danych!";
+            }
+
+            document.getElementById('gameover-screen').classList.remove('hidden');
+        }
+
+        function advanceQueueOrDrive() {
+            activeQueueIndex++;
+            if (activeQueueIndex < passengerQueue.length) {
+                loadCurrentQueuePassenger();
+            } else {
+                resumeDriving();
+            }
+        }
+
+        function makeDecision(type) {
+            if (state !== 'AT_STOP' || !currentPassenger || currentPassenger.isClown) return;
+
+            document.getElementById('passenger-modal').classList.add('hidden');
+
+            if (type === 'PURGE') {
+                audio.playGunshot();
+                purgeAnimationTimer = 22;
+
+                if (!currentPassenger.isDoppelganger) {
+                    sanityErrors++;
+                    document.getElementById('sanity-counter').innerText = `${Math.max(0, 3 - sanityErrors)}`;
+                }
+
+                setTimeout(() => {
+                    showToast("Postrzelenie pasażera.");
+                    advanceQueueOrDrive();
+                }, 450);
+
+            } else if (type === 'ALLOW') {
+                if (currentPassenger.isDoppelganger) {
+                    letInDoppelgangers.push(currentPassenger);
+                    showToast("Pasażer wszedł do autobusu.");
+                    advanceQueueOrDrive();
+                } else {
+                    humansBoarded++;
+                    document.getElementById('human-counter').innerText = `${humansBoarded} / ${targetHumansCount}`;
+                    showToast("Pasażer wszedł do autobusu.");
+
+                    if (humansBoarded >= targetHumansCount) {
+                        checkEndShiftEvaluation();
+                        return;
+                    }
+                    advanceQueueOrDrive();
+                }
+            }
+        }
+
+        function resumeDriving() {
+            state = 'DRIVING';
+            currentPassenger = null;
+            passengerQueue = [];
+            distanceRemaining = 350 + Math.floor(Math.random() * 200);
+
+            document.getElementById('driver-tablet').classList.add('tablet-hidden');
+
+            const prevStop = OFFICIAL_STOPS[currentStopIndex];
+            currentStopIndex = (currentStopIndex + 1) % OFFICIAL_STOPS.length;
+            const nextStop = OFFICIAL_STOPS[currentStopIndex];
+
+            document.getElementById('hud-prev-stop').innerText = prevStop;
+            document.getElementById('hud-next-stop').innerText = nextStop;
+
+            document.getElementById('vehicle-status').innerText = "JAZDA W TRASIE";
+            document.getElementById('queue-badge').classList.add('hidden');
+            document.getElementById('modal-dialogue-output').innerText = `"Stoję w drzwiach autobusu. O co chcesz zapytać?"`;
+        }
+
+        document.getElementById('btn-ask-job').addEventListener('click', () => {
+            if (!currentPassenger) return;
+            audio.playClick();
+            document.getElementById('modal-dialogue-output').innerText = `"${currentPassenger.responses.job}"`;
+        });
+
+        document.getElementById('btn-ask-reason').addEventListener('click', () => {
+            if (!currentPassenger) return;
+            audio.playClick();
+            document.getElementById('modal-dialogue-output').innerText = `"${currentPassenger.responses.reason}"`;
+        });
+
+        document.getElementById('btn-ask-dest').addEventListener('click', () => {
+            if (!currentPassenger) return;
+            audio.playClick();
+            document.getElementById('modal-dialogue-output').innerText = `"Moja stacja docelowa to: ${currentPassenger.docData.station}."`;
+        });
+
+        document.getElementById('btn-ask-name').addEventListener('click', () => {
+            if (!currentPassenger) return;
+            audio.playClick();
+            document.getElementById('modal-dialogue-output').innerText = `"Nazywam się ${currentPassenger.docData.name}, bilet numer ${currentPassenger.docData.id}."`;
+        });
+
+        document.getElementById('btn-close-modal').addEventListener('click', () => {
+            document.getElementById('passenger-modal').classList.add('hidden');
+        });
+
+        function setupTabs() {
+            const btnDoc = document.getElementById('tab-btn-doc');
+            const btnManifest = document.getElementById('tab-btn-manifest');
+            const btnRoute = document.getElementById('tab-btn-route');
+            const btnLore = document.getElementById('tab-btn-lore');
+
+            const contentDoc = document.getElementById('tab-content-doc');
+            const contentManifest = document.getElementById('tab-content-manifest');
+            const contentRoute = document.getElementById('tab-content-route');
+            const contentLore = document.getElementById('tab-content-lore');
+
+            function resetTabs() {
+                [btnDoc, btnManifest, btnRoute, btnLore].forEach(b => b.className = "py-1 px-2 bg-gray-900 text-gray-400 border border-gray-700 rounded text-[11px] font-bold hover:bg-gray-800");
+                [contentDoc, contentManifest, contentRoute, contentLore].forEach(c => c.classList.add('hidden'));
+            }
+
+            btnDoc.addEventListener('click', () => {
+                resetTabs();
+                btnDoc.className = "py-1 px-2 bg-green-900/80 text-green-300 border border-green-600 rounded text-[11px] font-bold";
+                contentDoc.classList.remove('hidden');
+            });
+
+            btnManifest.addEventListener('click', () => {
+                resetTabs();
+                btnManifest.className = "py-1 px-2 bg-green-900/80 text-green-300 border border-green-600 rounded text-[11px] font-bold";
+                contentManifest.classList.remove('hidden');
+            });
+
+            btnRoute.addEventListener('click', () => {
+                resetTabs();
+                btnRoute.className = "py-1 px-2 bg-green-900/80 text-green-300 border border-green-600 rounded text-[11px] font-bold";
+                contentRoute.classList.remove('hidden');
+            });
+
+            btnLore.addEventListener('click', () => {
+                resetTabs();
+                btnLore.className = "py-1 px-2 bg-red-900/80 text-red-300 border border-red-600 rounded text-[11px] font-bold";
+                contentLore.classList.remove('hidden');
+            });
+        }
+
+        function startGame(shiftNum = 1) {
+            resizeCanvas();
+            currentShift = shiftNum;
+            shiftPassengerCounter = 0;
+            humansBoarded = 0;
+            targetHumansCount = 13;
+            sanityErrors = 0;
+            letInDoppelgangers = [];
+            clockTimeMinutes = START_TIME_MINUTES;
+            gameActive = true;
+            manifestData = [];
+
+            gameModifiers = {
+                speedMultiplier: 1.0,
+                stopMinQueue: 1,
+                stopMaxQueue: 3,
+                doppelgangerChance: shiftNum === 2 ? 0.55 : 0.48
+            };
+
+            renderRouteStopsUI();
+
+            document.getElementById('hud-shift-num').innerText = `ZMIANA #${currentShift}`;
+            document.getElementById('human-counter').innerText = `0 / ${targetHumansCount}`;
+            document.getElementById('sanity-counter').innerText = `3`;
+            document.getElementById('time-display').innerText = getFormattedTime();
+
+            resumeDriving();
+            requestAnimationFrame(renderScene);
+        }
+
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            audio.init();
+            document.getElementById('start-screen').classList.add('hidden');
+            startGame(1);
+        });
+
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            document.getElementById('gameover-screen').classList.add('hidden');
+            startGame(currentShift);
+        });
+
+        document.getElementById('btn-next-shift').addEventListener('click', () => {
+            document.getElementById('win-screen').classList.add('hidden');
+            startGame(2);
+        });
+
+        document.getElementById('btn-allow').addEventListener('click', () => makeDecision('ALLOW'));
+        document.getElementById('btn-purge').addEventListener('click', () => makeDecision('PURGE'));
+
+        setupTabs();
+    </script>
+</body>
+</html>

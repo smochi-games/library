@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lab bio-simutation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        /* Style dla suwaków */
+        input[type=range] {
+            accent-color: #3b82f6;
+        }
+        /* Efekt mikroskopu dla Canvas */
+        .microscope-container {
+            position: relative;
+            background: radial-gradient(circle, #101c2e 0%, #080c14 85%, #020408 100%);
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.9);
+            border: 2px solid #1e293b;
+        }
+        .vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at center, transparent 60%, rgba(2, 4, 8, 0.85) 100%);
+            border-radius: inherit;
+        }
+        /* Custom Scrollbar dla panelu gatunków */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col md:flex-row overflow-hidden select-none">
+
+    <!-- LEWA STRONA: Ekran Mikroskopu (Canvas) -->
+    <main class="flex-1 relative flex flex-col items-center justify-center p-2 md:p-4 bg-slate-950">
+        <!-- Toast Powiadomienia o Antybiotyku -->
+        <div id="antibioticToast" class="absolute top-6 z-20 px-6 py-3 bg-purple-950/90 border border-purple-500/50 text-purple-200 rounded-xl shadow-2xl backdrop-blur-md transform -translate-y-10 opacity-0 transition-all duration-300 flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-purple-400 animate-ping"></div>
+            <div>
+                <div class="text-xs text-purple-400 font-semibold uppercase tracking-wider">Aplikacja Antybiotyku</div>
+                <div id="toastAntibioticName" class="text-base font-bold text-white">Podawanie preparatu...</div>
+            </div>
+        </div>
+
+        <!-- Toast Powiadomienia o Przeludnieniu (>2000) -->
+        <div id="overpopulationToast" class="absolute top-20 z-30 px-6 py-3 bg-rose-950/90 border border-rose-500/50 text-rose-200 rounded-xl shadow-2xl backdrop-blur-md transform -translate-y-10 opacity-0 transition-all duration-300 flex items-center gap-3 pointer-events-none">
+            <div class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></div>
+            <div>
+                <div class="text-xs text-rose-400 font-semibold uppercase tracking-wider">Kryzys Przeludnienia</div>
+                <div class="text-sm font-bold text-white">Populacja przekroczyła 2000 osobników! Automatyczny reset.</div>
+            </div>
+        </div>
+
+        <!-- Panel Śledzenia Zaznaczonego Organizmu (HUD) -->
+        <div id="selectedOrganismHUD" class="absolute top-6 left-6 z-20 bg-slate-900/90 border border-cyan-500/50 rounded-xl p-3 shadow-2xl backdrop-blur-md hidden text-xs min-w-[210px] transition-all">
+            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-700/80">
+                <div class="flex items-center gap-2">
+                    <span id="hudSpeciesDot" class="w-3 h-3 rounded-full border border-white/40 shadow-sm"></span>
+                    <span id="hudSpeciesName" class="font-bold text-white text-sm">Gatunek</span>
+                </div>
+                <button id="btnDeselect" class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded-md hover:bg-slate-800 font-bold transition">✕</button>
+            </div>
+            <div class="space-y-2 text-slate-300">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Stan:</span>
+                    <span id="hudStatus" class="font-bold text-cyan-400">Normalny</span>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                    <span class="text-slate-400">Energia:</span>
+                    <div class="w-24 bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700">
+                        <div id="hudEnergyBar" class="bg-emerald-400 h-full w-full transition-all duration-150"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Wiek komórki:</span>
+                    <span id="hudAge" class="font-mono text-amber-300 font-semibold">0s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrukcja dodawania pokarmu -->
+        <div class="absolute bottom-4 left-6 z-10 text-xs text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800 backdrop-blur pointer-events-none">
+            💡 <span class="font-medium text-slate-200">Wskazówka:</span> Kliknij na organizm, aby go śledzić, lub w puste miejsce, by dodać glukozę.
+        </div>
+
+        <div class="w-full h-full rounded-2xl microscope-container overflow-hidden flex items-center justify-center">
+            <div class="vignette"></div>
+            <canvas id="simCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+        </div>
+    </main>
+
+    <!-- PRAWA STRONA: Panel Sterowania -->
+    <aside class="w-full md:w-96 bg-slate-900 border-l border-slate-800 flex flex-col h-full z-10 shadow-2xl">
+        <!-- Nagłówek i Statystyki Ogólne -->
+        <div class="p-4 border-b border-slate-800 bg-slate-900/50">
+            <div class="flex items-center justify-between mb-3">
+                <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="text-xl">🔬</span> Lab Bio-Simulation
+                </h1>
+                <span class="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md font-mono">
+                    v2.1
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <div class="text-xs text-slate-400">Żywe Gatunki</div>
+                    <div id="statSpeciesCount" class="text-2xl font-bold text-blue-400">0</div>
+                </div>
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <div class="text-xs text-slate-400">Populacja</div>
+                    <div id="statOrganismCount" class="text-2xl font-bold text-emerald-400">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parametry Środowiska -->
+        <div class="p-4 border-b border-slate-800 space-y-4">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Parametry Środowiska</h2>
+            
+            <!-- Światło -->
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-300">Natężenie Światła</span>
+                    <span id="valLight" class="text-blue-400 font-mono font-semibold">70%</span>
+                </div>
+                <input type="range" id="sliderLight" min="0" max="100" value="70" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Temperatura -->
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-300">Temperatura (Metabolizm)</span>
+                    <span id="valTemp" class="text-amber-400 font-mono font-semibold">22°C</span>
+                </div>
+                <input type="range" id="sliderTemp" min="5" max="45" value="22" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Prędkość Symulacji -->
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-300">Prędkość Symulacji</span>
+                    <span id="valSpeed" class="text-emerald-400 font-mono font-semibold">1x</span>
+                </div>
+                <input type="range" id="sliderSpeed" min="1" max="10" value="1" step="0.5" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <!-- Szansa na mutację -->
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-slate-300">Częstotliwość Mutacji</span>
+                    <span id="valMutation" class="text-purple-400 font-mono font-semibold">15%</span>
+                </div>
+                <input type="range" id="sliderMutation" min="1" max="50" value="15" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+        </div>
+
+        <!-- Przyciski Akcji -->
+        <div class="p-4 border-b border-slate-800 grid grid-cols-2 gap-2">
+            <button id="btnPause" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+                <span id="iconPause">⏸️</span> <span id="textPause">Pauza</span>
+            </button>
+            <button id="btnReset" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+                🔄 Resetuj
+            </button>
+            <button id="btnAntibiotic" class="col-span-2 py-2.5 px-3 bg-purple-900/50 hover:bg-purple-800/60 border border-purple-600/50 text-purple-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-purple-950/50">
+                🧪 Aplikuj Antybiotyk
+            </button>
+        </div>
+
+        <!-- Lista Żyjących Gatunków -->
+        <div class="flex-1 p-4 overflow-y-auto flex flex-col">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span>Żyjące Gatunki</span>
+                <span class="text-[10px] text-slate-500 font-normal">Na żywo</span>
+            </h2>
+            <div id="speciesListContainer" class="space-y-3 flex-1">
+                <!-- Karty gatunków będą wstrzykiwane dynamicznie w JS -->
+            </div>
+        </div>
+    </aside>
+
+    <!-- LOGIKA SYMULACJI W JAVASCRIPT -->
+    <script>
+        // Baza 21+ Nazw Łacińskich dla Gatunków
+        const LATIN_PREFIXES = [
+            'Amoeba', 'Bacillus', 'Micrococcus', 'Spirillum', 'Pseudomonas', 
+            'Lactobacillus', 'Spirochaeta', 'Staphylococcus', 'Vibrio', 'Clostridium', 
+            'Rhizobium', 'Tetrahymena', 'Euglena', 'Paramecium', 'Volvox', 
+            'Planctomyces', 'Streptomyces', 'Haloferax', 'Thermococcus', 'Acidithiobacillus', 'Deinococcus'
+        ];
+        const LATIN_SUFFIXES = [
+            'elegans', 'viridis', 'aureus', 'subtilis', 'pyogenes', 
+            'acidophilus', 'solani', 'mutans', 'marinus', 'giganteus', 
+            'fluorescens', 'radiodurans', 'thermophilus', 'aquatilis', 'bellus', 
+            'caeruleus', 'rubrum', 'stardustis', 'vorax', 'swiftii'
+        ];
+
+        // Prefiksy i sufiksy dla generatora nazw Antybiotyków
+        const ANTIBIOTIC_PREFIXES = ['Amoxi', 'Cephalo', 'Strepto', 'Azithro', 'Cipro', 'Penicil', 'Tetra', 'Vancomy', 'Erythro', 'Doxy'];
+        const ANTIBIOTIC_SUFFIXES = ['cillin', 'mycin', 'floxacin', 'cycline', 'thromycin', 'derm', 'biotic', 'cid'];
+
+        // Elementy DOM
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const statSpeciesCount = document.getElementById('statSpeciesCount');
+        const statOrganismCount = document.getElementById('statOrganismCount');
+
+        const sliderLight = document.getElementById('sliderLight');
+        const sliderTemp = document.getElementById('sliderTemp');
+        const sliderSpeed = document.getElementById('sliderSpeed');
+        const sliderMutation = document.getElementById('sliderMutation');
+
+        const valLight = document.getElementById('valLight');
+        const valTemp = document.getElementById('valTemp');
+        const valSpeed = document.getElementById('valSpeed');
+        const valMutation = document.getElementById('valMutation');
+
+        const btnPause = document.getElementById('btnPause');
+        const btnReset = document.getElementById('btnReset');
+        const btnAntibiotic = document.getElementById('btnAntibiotic');
+        const textPause = document.getElementById('textPause');
+        const iconPause = document.getElementById('iconPause');
+
+        const antibioticToast = document.getElementById('antibioticToast');
+        const toastAntibioticName = document.getElementById('toastAntibioticName');
+        const speciesListContainer = document.getElementById('speciesListContainer');
+
+        // Elementy HUD Zaznaczenia
+        const selectedOrganismHUD = document.getElementById('selectedOrganismHUD');
+        const hudSpeciesDot = document.getElementById('hudSpeciesDot');
+        const hudSpeciesName = document.getElementById('hudSpeciesName');
+        const hudStatus = document.getElementById('hudStatus');
+        const hudEnergyBar = document.getElementById('hudEnergyBar');
+        const hudAge = document.getElementById('hudAge');
+        const btnDeselect = document.getElementById('btnDeselect');
+
+        // Stan Symulacji
+        let isPaused = false;
+        let simSpeed = 1;
+        let mutationRate = 0.15;
+        let environmentLight = 0.7;
+        let environmentTemp = 22;
+
+        let organisms = [];
+        let nutrients = [];
+        let particles = [];
+        let speciesRegistry = new Map(); // id -> species object
+        let nextSpeciesId = 1;
+        let selectedOrganism = null; // Zaznaczony organizm do śledzenia
+
+        // Dopasowywanie rozmiaru płótna
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Pomocnik do losowych kolorów HSL
+        function randomColor() {
+            const hue = Math.floor(Math.random() * 360);
+            return `hsl(${hue}, 80%, 60%)`;
+        }
+
+        // Generator nazw gatunków
+        function generateSpeciesName() {
+            const p = LATIN_PREFIXES[Math.floor(Math.random() * LATIN_PREFIXES.length)];
+            const s = LATIN_SUFFIXES[Math.floor(Math.random() * LATIN_SUFFIXES.length)];
+            return `${p} ${s}`;
+        }
+
+        // Generator nazw antybiotyków
+        function generateAntibioticName() {
+            const p = ANTIBIOTIC_PREFIXES[Math.floor(Math.random() * ANTIBIOTIC_PREFIXES.length)];
+            const s = ANTIBIOTIC_SUFFIXES[Math.floor(Math.random() * ANTIBIOTIC_SUFFIXES.length)];
+            const code = Math.floor(10 + Math.random() * 90);
+            return `${p}${s} MK-${code}`;
+        }
+
+        // --- KLASA GATUNKU ---
+        class Species {
+            constructor(id, name, color, speed, fertility, resistance, isPredator = false) {
+                this.id = id;
+                this.name = name;
+                this.color = color;
+                this.speed = speed; // 1.0 - 3.0
+                this.fertility = fertility; // 0.5 - 2.0 (koszt energii do rozmnażania)
+                this.resistance = resistance; // 0.5 - 2.0 (odporność na temp/głód)
+                this.isPredator = isPredator;
+            }
+        }
+
+        // Rejestracja nowego gatunku
+        function createSpecies(speed, fertility, resistance, isPredator = false, baseColor = null) {
+            const id = nextSpeciesId++;
+            const name = generateSpeciesName();
+            const color = baseColor || randomColor();
+            const sp = new Species(id, name, color, speed, fertility, resistance, isPredator);
+            speciesRegistry.set(id, sp);
+            return sp;
+        }
+
+        // --- KLASA ORGANIZMU ---
+        class Organism {
+            constructor(x, y, speciesId) {
+                this.x = x;
+                this.y = y;
+                this.speciesId = speciesId;
+                this.angle = Math.random() * Math.PI * 2;
+                this.energy = 60;
+                this.maxEnergy = 120;
+                this.age = 0;
+                this.wobblePhase = Math.random() * Math.PI * 2;
+
+                this.reproductionCount = 0; // Licznik rozmnożeń (limit 3 dla drapieżników)
+                this.antibioticTimer = null; // Czas do śmierci od antybiotyku
+
+                // Drapieżnik: licznik głodu (głodny po 16s, śmierć po 25s)
+                this.timeSinceEaten = 0;
+                this.isFleeing = false; // Status ucieczki dla roślinożerców
+
+                const sp = this.getSpecies();
+                this.radius = sp && sp.isPredator ? 11 : 6;
+            }
+
+            getSpecies() {
+                return speciesRegistry.get(this.speciesId);
+            }
+
+            update(dt) {
+                const species = this.getSpecies();
+                if (!species) return;
+
+                this.age += dt;
+                this.wobblePhase += dt * 5;
+                this.isFleeing = false;
+
+                // --- EFEKT ANTYBIOTYKU ---
+                if (this.antibioticTimer !== null) {
+                    this.antibioticTimer -= dt;
+                    if (Math.random() < 0.25) {
+                        spawnParticles(this.x, this.y, '#c084fc', 1);
+                    }
+                    if (this.antibioticTimer <= 0) {
+                        this.energy = -100; // Śmierć
+                        spawnParticles(this.x, this.y, '#a855f7', 8);
+                        return;
+                    }
+                }
+
+                // --- BEHAWIOR: DRAPIEŻNICTWO I UCIECZKA ---
+                let currentSpeed = species.speed * 40;
+                let targetAngle = this.angle;
+                let isFleeingOrHunting = false;
+
+                if (species.isPredator) {
+                    this.timeSinceEaten += dt;
+
+                    // Śmierć z głodu po 34 sekundach bez jedzenia
+                    if (this.timeSinceEaten >= 34) {
+                        this.energy = -100;
+                        spawnParticles(this.x, this.y, '#f87171', 8);
+                        return;
+                    }
+
+                    // GŁÓD: Drapieżnik poluje TYLKO po 13 sekundach
+                    const isHungry = this.timeSinceEaten >= 13;
+
+                    if (isHungry) {
+                        // Drapieżnik znacząco przyspiesza, gdy jest głodny i poluje
+                        currentSpeed *= 1.7;
+
+                        let closestPrey = null;
+                        let minDist = 220; // Zwiększony zasięg wzroku i węchu głodnego drapieżnika
+
+                        for (let other of organisms) {
+                            if (other === this) continue;
+                            const otherSp = other.getSpecies();
+                            if (otherSp && !otherSp.isPredator) {
+                                const dx = other.x - this.x;
+                                const dy = other.y - this.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    closestPrey = other;
+                                }
+                            }
+                        }
+
+                        if (closestPrey) {
+                            targetAngle = Math.atan2(closestPrey.y - this.y, closestPrey.x - this.x);
+                            isFleeingOrHunting = true;
+
+                            // ZJEDZENIE OFIARY
+                            if (minDist < this.radius + closestPrey.radius) {
+                                this.energy = Math.min(this.maxEnergy, this.energy + 60);
+                                this.timeSinceEaten = 0; // Reset głodu
+                                closestPrey.energy = -100; // Śmierć ofiary
+                                spawnParticles(closestPrey.x, closestPrey.y, '#ef4444', 10);
+                            }
+                        }
+                    }
+                } else {
+                    // ROŚLINOŻERCA: Ucieczka TYLKO przed GŁODNYMI drapieżnikami (timeSinceEaten >= 13)
+                    let closestPredator = null;
+                    let minDist = 130;
+
+                    for (let other of organisms) {
+                        if (other === this) continue;
+                        const otherSp = other.getSpecies();
+                        if (otherSp && otherSp.isPredator && other.timeSinceEaten >= 13) {
+                            const dx = other.x - this.x;
+                            const dy = other.y - this.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closestPredator = other;
+                            }
+                        }
+                    }
+
+                    if (closestPredator) {
+                        // Zwrot w przeciwną stronę
+                        targetAngle = Math.atan2(this.y - closestPredator.y, this.x - closestPredator.x);
+                        currentSpeed *= 1.48; // Zwiększenie prędkości podczas ucieczki
+                        isFleeingOrHunting = true;
+                        this.isFleeing = true;
+                    }
+                }
+
+                // Szukanie glukozy (jeśli nie ucieka ani nie poluje)
+                if (!isFleeingOrHunting && !species.isPredator) {
+                    let closestNutrient = null;
+                    let minDist = 100;
+
+                    for (let n of nutrients) {
+                        const dx = n.x - this.x;
+                        const dy = n.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closestNutrient = n;
+                        }
+                    }
+
+                    if (closestNutrient) {
+                        targetAngle = Math.atan2(closestNutrient.y - this.y, closestNutrient.x - this.x);
+                    }
+                }
+
+                // Wygładzanie kierunku
+                let angleDiff = targetAngle - this.angle;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                this.angle += angleDiff * 0.1;
+
+                // Lekki szum ruchu
+                this.angle += (Math.random() - 0.5) * 0.2;
+
+                // Ruch
+                const vx = Math.cos(this.angle) * currentSpeed;
+                const vy = Math.sin(this.angle) * currentSpeed;
+
+                this.x += vx * dt;
+                this.y += vy * dt;
+
+                // --- BEZPIECZNE ODBIJANIE OD KRAWĘDZI (BEZ UTYKANIA) ---
+                const margin = this.radius + 2;
+                let bounced = false;
+
+                if (this.x < margin) {
+                    this.x = margin;
+                    this.angle = Math.PI - this.angle;
+                    bounced = true;
+                } else if (this.x > canvas.width - margin) {
+                    this.x = canvas.width - margin;
+                    this.angle = Math.PI - this.angle;
+                    bounced = true;
+                }
+
+                if (this.y < margin) {
+                    this.y = margin;
+                    this.angle = -this.angle;
+                    bounced = true;
+                } else if (this.y > canvas.height - margin) {
+                    this.y = canvas.height - margin;
+                    this.angle = -this.angle;
+                    bounced = true;
+                }
+
+                if (bounced) {
+                    this.angle += (Math.random() - 0.5) * 0.5;
+                }
+
+                // --- KONSUMPCJA GLUKOZY ---
+                if (!species.isPredator) {
+                    for (let i = nutrients.length - 1; i >= 0; i--) {
+                        const n = nutrients[i];
+                        const dist = Math.hypot(n.x - this.x, n.y - this.y);
+                        if (dist < this.radius + n.radius) {
+                            this.energy = Math.min(this.maxEnergy, this.energy + 25);
+                            nutrients.splice(i, 1);
+                            spawnParticles(n.x, n.y, '#34d399', 4);
+                        }
+                    }
+                }
+
+                // --- METABOLIZM I ZUŻYCIE ENERGII ---
+                const tempFactor = (environmentTemp / 20); // Optymalna ~20C
+                const baseMetabolism = (0.2 + species.speed * 0.1) * tempFactor / species.resistance;
+                
+                this.energy -= baseMetabolism * dt * 10;
+
+                // Światło daje energię autotrofon
+                if (!species.isPredator) {
+                    this.energy += environmentLight * 3.5 * dt;
+                }
+
+                // --- ROZMNAŻANIE ---
+                const reproductionThreshold = 90 / species.fertility;
+                if (this.energy >= reproductionThreshold) {
+                    this.reproduce();
+                }
+            }
+
+            reproduce() {
+                this.energy /= 2;
+                this.reproductionCount++;
+                
+                const parentSpecies = this.getSpecies();
+                let offspringSpeciesId = this.speciesId;
+
+                // SPRAWDZENIE MUTACJI
+                if (Math.random() < mutationRate) {
+                    let newSpeed = Math.max(0.6, parentSpecies.speed + (Math.random() - 0.5) * 0.4);
+                    let newFertility = Math.max(0.4, parentSpecies.fertility + (Math.random() - 0.5) * 0.3);
+                    let newResistance = Math.max(0.4, parentSpecies.resistance + (Math.random() - 0.5) * 0.3);
+                    
+                    // Szansa na powstanie drapieżnika
+                    let newIsPredator = parentSpecies.isPredator;
+                    if (!newIsPredator && Math.random() < 0.08) {
+                        newIsPredator = true;
+                    }
+
+                    // Tworzenie NOWEGO gatunku po mutacji
+                    const newSp = createSpecies(newSpeed, newFertility, newResistance, newIsPredator);
+                    offspringSpeciesId = newSp.id;
+
+                    spawnParticles(this.x, this.y, '#a855f7', 12);
+                }
+
+                const child = new Organism(
+                    this.x + (Math.random() - 0.5) * 15,
+                    this.y + (Math.random() - 0.5) * 15,
+                    offspringSpeciesId
+                );
+                organisms.push(child);
+
+                // --- ŚMIERĆ DRAPIEŻNIKA ZE STAROŚCI PO 3 ROZMNOŻENIACH ---
+                if (parentSpecies && parentSpecies.isPredator && this.reproductionCount >= 3) {
+                    this.energy = -100;
+                    spawnParticles(this.x, this.y, '#f87171', 14);
+                }
+            }
+
+            draw(ctx) {
+                const species = this.getSpecies();
+                if (!species) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // --- PODŚWIETLENIE ZAZNACZONEGO ORGANIZMU ---
+                if (this === selectedOrganism) {
+                    const pulse = Math.sin(Date.now() * 0.008) * 3;
+                    const r = this.radius + 10 + pulse;
+
+                    // Pulsujący okrąg
+                    ctx.beginPath();
+                    ctx.arc(0, 0, r, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 4]);
+                    ctx.stroke();
+
+                    // Znaczniki celownika
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-r - 4, 0); ctx.lineTo(-r + 2, 0);
+                    ctx.moveTo(r + 4, 0); ctx.lineTo(r - 2, 0);
+                    ctx.moveTo(0, -r - 4); ctx.lineTo(0, -r + 2);
+                    ctx.moveTo(0, r + 4); ctx.lineTo(0, r - 2);
+                    ctx.stroke();
+                }
+
+                ctx.rotate(this.angle);
+
+                if (species.isPredator) {
+                    // DRAPIEŻNIK: Dwu-kolorowa kropka z ostrymi kolcami na błonie komórkowej
+                    const spikeCount = 12;
+                    ctx.beginPath();
+                    for (let i = 0; i < spikeCount; i++) {
+                        const angle = (i / spikeCount) * Math.PI * 2 + this.wobblePhase * 0.5;
+                        const nextAngle = ((i + 0.5) / spikeCount) * Math.PI * 2 + this.wobblePhase * 0.5;
+                        const outerR = this.radius + 3.5;
+                        const innerR = this.radius;
+
+                        const x1 = Math.cos(angle) * outerR;
+                        const y1 = Math.sin(angle) * outerR;
+                        const x2 = Math.cos(nextAngle) * innerR;
+                        const y2 = Math.sin(nextAngle) * innerR;
+
+                        if (i === 0) ctx.moveTo(x1, y1);
+                        else ctx.lineTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                    }
+                    ctx.closePath();
+                    ctx.fillStyle = species.color;
+                    ctx.fill();
+
+                    // Drugi kolor w centrum (dwukolorowa kropka: jądro zmienia kolor na czerwony gdy jest głodny)
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = this.timeSinceEaten >= 16 ? '#ef4444' : '#f97316';
+                    ctx.fill();
+                } else {
+                    // ROŚLINOŻERCA / AUTOTROF: Czysta, gładka kolorowa kropka
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = species.color;
+                    ctx.fill();
+
+                    // Jasny punkcik / jądro wewnątrz kropki
+                    ctx.beginPath();
+                    ctx.arc(-this.radius * 0.25, -this.radius * 0.25, this.radius * 0.35, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.fill();
+                }
+
+                // Świecenie przy zainfekowaniu antybiotykiem
+                if (this.antibioticTimer !== null) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#c084fc';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // --- KLASA GLUKOZY / POKARMU ---
+        class Nutrient {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 3;
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#10b981';
+                ctx.shadowColor = '#34d399';
+                ctx.shadowBlur = 6;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // --- PARTIKLE / EFEKTY VISUALNE ---
+        function spawnParticles(x, y, color, count = 5) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 60,
+                    vy: (Math.random() - 0.5) * 60,
+                    color,
+                    life: 0.5 + Math.random() * 0.5,
+                    maxLife: 1.0
+                });
+            }
+        }
+
+        // --- INICJALIZACJA SYMULACJI ---
+        function initSimulation() {
+            organisms = [];
+            nutrients = [];
+            particles = [];
+            speciesRegistry.clear();
+            nextSpeciesId = 1;
+            selectedOrganism = null;
+
+            // Tworzenie 3 początkowych gatunków (w tym 1 drapieżnika)
+            const sp1 = createSpecies(1.2, 1.0, 1.0, false, '#38bdf8');
+            const sp2 = createSpecies(1.6, 1.3, 0.8, false, '#facc15');
+            const sp3 = createSpecies(1.4, 0.8, 1.2, true, '#f43f5e');
+
+            // Populacja startowa
+            for (let i = 0; i < 18; i++) {
+                const x = 50 + Math.random() * (canvas.width - 100);
+                const y = 50 + Math.random() * (canvas.height - 100);
+                organisms.push(new Organism(x, y, sp1.id));
+            }
+            for (let i = 0; i < 14; i++) {
+                const x = 50 + Math.random() * (canvas.width - 100);
+                const y = 50 + Math.random() * (canvas.height - 100);
+                organisms.push(new Organism(x, y, sp2.id));
+            }
+            for (let i = 0; i < 4; i++) {
+                const x = 50 + Math.random() * (canvas.width - 100);
+                const y = 50 + Math.random() * (canvas.height - 100);
+                organisms.push(new Organism(x, y, sp3.id));
+            }
+
+            // Kilka początkowych grudek glukozy
+            for (let i = 0; i < 25; i++) {
+                nutrients.push(new Nutrient(
+                    Math.random() * canvas.width,
+                    Math.random() * canvas.height
+                ));
+            }
+        }
+
+        // --- ZDARZENIA / INTERAKCJA Z MYSZKĄ ---
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Sprawdzanie czy kliknięto w istniejący organizm
+            let clickedOrg = null;
+            let minDist = Infinity;
+            for (let org of organisms) {
+                const dist = Math.hypot(org.x - clickX, org.y - clickY);
+                if (dist < org.radius + 12 && dist < minDist) {
+                    minDist = dist;
+                    clickedOrg = org;
+                }
+            }
+
+            if (clickedOrg) {
+                selectedOrganism = clickedOrg;
+                spawnParticles(clickedOrg.x, clickedOrg.y, '#38bdf8', 8);
+            } else {
+                // Jeśli kliknięto puste miejsce - dodanie pokarmu
+                for (let i = 0; i < 6; i++) {
+                    nutrients.push(new Nutrient(
+                        clickX + (Math.random() - 0.5) * 30,
+                        clickY + (Math.random() - 0.5) * 30
+                    ));
+                }
+                spawnParticles(clickX, clickY, '#10b981', 8);
+            }
+        });
+
+        btnDeselect.addEventListener('click', () => {
+            selectedOrganism = null;
+        });
+
+        // --- AKCJE PRZYCISKÓW ---
+        btnPause.addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (isPaused) {
+                textPause.textContent = 'Wznów';
+                iconPause.textContent = '▶️';
+                btnPause.classList.replace('bg-slate-800', 'bg-emerald-950');
+            } else {
+                textPause.textContent = 'Pauza';
+                iconPause.textContent = '⏸️';
+                btnPause.classList.replace('bg-emerald-950', 'bg-slate-800');
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            initSimulation();
+        });
+
+        btnAntibiotic.addEventListener('click', () => {
+            const name = generateAntibioticName();
+            toastAntibioticName.textContent = name;
+
+            // Toast notification
+            antibioticToast.classList.remove('opacity-0', '-translate-y-10');
+            antibioticToast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                antibioticToast.classList.remove('opacity-100', 'translate-y-0');
+                antibioticToast.classList.add('opacity-0', '-translate-y-10');
+            }, 3500);
+
+            // Wyznaczenie gatunków wrażliwych na ten konkretny antybiotyk (10% szans na gatunek)
+            const affectedSpeciesIds = new Set();
+            speciesRegistry.forEach((sp, speciesId) => {
+                if (Math.random() < 0.10) {
+                    affectedSpeciesIds.add(speciesId);
+                }
+            });
+
+            // Zainfekowanie antybiotykiem tylko osobników z wrażliwych gatunków (od 4 do 14 sek. do zgonu)
+            organisms.forEach(org => {
+                if (affectedSpeciesIds.has(org.speciesId)) {
+                    org.antibioticTimer = 4 + Math.random() * 10;
+                }
+            });
+        });
+
+        // Suwaki
+        sliderLight.addEventListener('input', (e) => {
+            environmentLight = e.target.value / 100;
+            valLight.textContent = `${e.target.value}%`;
+        });
+        sliderTemp.addEventListener('input', (e) => {
+            environmentTemp = parseFloat(e.target.value);
+            valTemp.textContent = `${e.target.value}°C`;
+        });
+        sliderSpeed.addEventListener('input', (e) => {
+            simSpeed = parseFloat(e.target.value);
+            valSpeed.textContent = `${e.target.value}x`;
+        });
+        sliderMutation.addEventListener('input', (e) => {
+            mutationRate = e.target.value / 100;
+            valMutation.textContent = `${e.target.value}%`;
+        });
+
+        // --- AKTUALIZACJA PANELU STATYSTYK GATUNKÓW I HUD ---
+        function updateUI() {
+            // Liczenie populacji każdego gatunku
+            const speciesCounts = new Map();
+            organisms.forEach(o => {
+                const cnt = speciesCounts.get(o.speciesId) || 0;
+                speciesCounts.set(o.speciesId, cnt + 1);
+            });
+
+            // Statystyki ogólne
+            statSpeciesCount.textContent = speciesCounts.size;
+            statOrganismCount.textContent = organisms.length;
+
+            // --- AKTUALIZACJA PASKU ŚLEDZENIA (HUD) ---
+            if (selectedOrganism) {
+                // Jeśli organizm zginął lub zniknął
+                if (selectedOrganism.energy <= 0 || !organisms.includes(selectedOrganism)) {
+                    selectedOrganism = null;
+                    selectedOrganismHUD.classList.add('hidden');
+                } else {
+                    const sp = selectedOrganism.getSpecies();
+                    if (sp) {
+                        selectedOrganismHUD.classList.remove('hidden');
+                        hudSpeciesName.textContent = sp.name;
+                        hudSpeciesDot.style.backgroundColor = sp.color;
+                        hudAge.textContent = `${Math.floor(selectedOrganism.age)}s`;
+
+                        // Pasek energii
+                        const pct = Math.max(0, Math.min(100, (selectedOrganism.energy / selectedOrganism.maxEnergy) * 100));
+                        hudEnergyBar.style.width = `${pct}%`;
+
+                        // Stan behawioralny
+                        if (selectedOrganism.antibioticTimer !== null) {
+                            hudStatus.textContent = '☣️ Zainfekowany';
+                            hudStatus.className = 'font-bold text-purple-400';
+                        } else if (sp.isPredator) {
+                            if (selectedOrganism.timeSinceEaten >= 16) {
+                                hudStatus.textContent = `🩸 Poluje (${selectedOrganism.reproductionCount}/3 mioty)`;
+                                hudStatus.className = 'font-bold text-rose-500 animate-pulse';
+                            } else {
+                                hudStatus.textContent = `😴 Najedzony (${selectedOrganism.reproductionCount}/3 mioty)`;
+                                hudStatus.className = 'font-bold text-amber-400';
+                            }
+                        } else {
+                            if (selectedOrganism.isFleeing) {
+                                hudStatus.textContent = '⚡ Ucieka!';
+                                hudStatus.className = 'font-bold text-amber-400 animate-bounce';
+                            } else {
+                                hudStatus.textContent = '🌿 Żeruje';
+                                hudStatus.className = 'font-bold text-emerald-400';
+                            }
+                        }
+                    }
+                }
+            } else {
+                selectedOrganismHUD.classList.add('hidden');
+            }
+
+            // Renderowanie kart gatunków
+            speciesListContainer.innerHTML = '';
+
+            speciesCounts.forEach((count, speciesId) => {
+                const sp = speciesRegistry.get(speciesId);
+                if (!sp) return;
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 flex flex-col gap-2 shadow-md';
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full border border-white/20 shadow-sm" style="background-color: ${sp.color}"></span>
+                            <span class="text-xs font-bold text-slate-100">${sp.name}</span>
+                        </div>
+                        <span class="text-xs font-mono font-extrabold px-2 py-0.5 bg-slate-900 border border-slate-700 rounded-md text-blue-400">
+                            ${count} os.
+                        </span>
+                    </div>
+
+                    ${sp.isPredator ? `
+                        <div class="inline-flex items-center gap-1 text-[10px] text-rose-400 font-bold bg-rose-950/50 border border-rose-800/50 px-2 py-0.5 rounded-md w-fit">
+                            <span>☠️ Drapieżnik</span>
+                        </div>
+                    ` : ''}
+
+                    <div class="grid grid-cols-3 gap-2 text-[10px] text-slate-400 pt-1 border-t border-slate-700/50">
+                        <div>
+                            <div>Szybkość</div>
+                            <div class="font-mono text-slate-200 font-semibold">${sp.speed.toFixed(1)}</div>
+                        </div>
+                        <div>
+                            <div>Dzietność</div>
+                            <div class="font-mono text-slate-200 font-semibold">${sp.fertility.toFixed(1)}</div>
+                        </div>
+                        <div>
+                            <div>Odporność</div>
+                            <div class="font-mono text-slate-200 font-semibold">${sp.resistance.toFixed(1)}</div>
+                        </div>
+                    </div>
+                `;
+                speciesListContainer.appendChild(card);
+            });
+        }
+
+        // --- GŁÓWNA PĘTLA SYMULACJI ---
+        let lastTime = performance.now();
+
+        function showOverpopulationToast() {
+            const overToast = document.getElementById('overpopulationToast');
+            if (overToast) {
+                overToast.classList.remove('opacity-0', '-translate-y-10');
+                overToast.classList.add('opacity-100', 'translate-y-0');
+
+                setTimeout(() => {
+                    overToast.classList.remove('opacity-100', 'translate-y-0');
+                    overToast.classList.add('opacity-0', '-translate-y-10');
+                }, 4000);
+            }
+        }
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1) * (isPaused ? 0 : simSpeed);
+            lastTime = now;
+
+            if (!isPaused) {
+                // Sprawdzenie kryzysu przeludnienia (>2000)
+                if (organisms.length > 2000) {
+                    initSimulation();
+                    showOverpopulationToast();
+                }
+
+                // Czyszczenie i tło Canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Spawnowanie pokarmu od światła
+                if (Math.random() < environmentLight * 0.25) {
+                    nutrients.push(new Nutrient(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height
+                    ));
+                }
+
+                // Usuwanie martwych organizmów
+                for (let i = organisms.length - 1; i >= 0; i--) {
+                    if (organisms[i].energy <= 0) {
+                        spawnParticles(organisms[i].x, organisms[i].y, '#64748b', 4);
+                        organisms.splice(i, 1);
+                    }
+                }
+
+                // Aktualizacja i rysowanie Glukozy
+                for (let n of nutrients) {
+                    n.draw(ctx);
+                }
+
+                // Aktualizacja i rysowanie Organizmu
+                for (let org of organisms) {
+                    org.update(dt);
+                    org.draw(ctx);
+                }
+
+                // Aktualizacja i rysowanie Partikli
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    p.life -= dt;
+
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 2 * (p.life / p.maxLife), 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                }
+            }
+
+            // Aktualizacja UI co parę klatek
+            if (Math.floor(now) % 10 === 0) {
+                updateUI();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Uruchomienie symulacji po załadowaniu
+        window.onload = () => {
+            initSimulation();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorium Cząsteczek & Syntezator Białek</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+    }
+
+    /* Custom Glassmorphism Styles */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+      background: rgba(51, 65, 85, 0.7);
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.9);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 1);
+    }
+
+    /* Glow utilities */
+    .glow-cyan {
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen w-screen overflow-hidden flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <header class="h-16 bg-slate-900/90 border-b border-slate-800/80 px-4 md:px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-500 rounded-xl shadow-lg shadow-cyan-500/20 text-slate-950 font-black text-xl">
+        🧪
+      </div>
+      <div>
+        <h1 class="text-base md:text-lg font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
+          Laboratorium Cząsteczek
+        </h1>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Zaawansowany Reaktor Pierwiastków i Syntezator Biochemiczny</p>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800/90">
+      <button id="nav-lab" onclick="switchTab('lab')" class="px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all text-cyan-400 bg-slate-800 shadow-sm border border-slate-700/60 flex items-center gap-2">
+        <span>⚛️</span> <span class="hidden sm:inline">Reaktor</span> Pierwiastków
+      </button>
+      <button id="nav-bio" onclick="switchTab('bio')" class="px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span>🧬</span> Białka <span class="hidden sm:inline">& Peptydy</span>
+      </button>
+      <button id="nav-encyclopedia" onclick="switchTab('encyclopedia')" class="px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span>📖</span> Encyklopedia (<span id="encyclopedia-count">0</span>)
+      </button>
+    </nav>
+  </header>
+
+  <main class="flex-1 relative overflow-hidden">
+
+    <section id="tab-lab" class="h-full w-full flex flex-col md:flex-row relative">
+      <!-- Sidebar Elements Panel -->
+      <aside class="w-full md:w-96 bg-slate-900/80 border-b md:border-b-0 md:border-r border-slate-800/80 p-3 md:p-4 flex flex-col gap-3 shrink-0 z-10 glass-panel overflow-y-auto">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Układ Okresowy Pierwiastków</h2>
+          <span class="text-[10px] bg-slate-800 text-cyan-400 px-2 py-0.5 rounded-full border border-slate-700 font-semibold">54 Pierwiastki</span>
+        </div>
+
+        <!-- Filter Category Tabs -->
+        <div class="flex flex-wrap gap-1 text-[11px] border-b border-slate-800 pb-2" id="category-filters">
+          <button onclick="filterCategory('ALL')" class="cat-filter-btn px-2 py-1 rounded bg-slate-800 text-cyan-400 font-semibold border border-slate-700" data-cat="ALL">Wszystkie</button>
+          <button onclick="filterCategory('nonmetal')" class="cat-filter-btn px-2 py-1 rounded bg-slate-950 text-slate-400 hover:text-slate-200" data-cat="nonmetal">Niemetale</button>
+          <button onclick="filterCategory('alkali')" class="cat-filter-btn px-2 py-1 rounded bg-slate-950 text-slate-400 hover:text-slate-200" data-cat="alkali">Alkaliczne</button>
+          <button onclick="filterCategory('transition')" class="cat-filter-btn px-2 py-1 rounded bg-slate-950 text-slate-400 hover:text-slate-200" data-cat="transition">Przejściowe</button>
+          <button onclick="filterCategory('halogen')" class="cat-filter-btn px-2 py-1 rounded bg-slate-950 text-slate-400 hover:text-slate-200" data-cat="halogen">Halogeny/Gazy</button>
+        </div>
+
+        <!-- Scrollable Element Palette -->
+        <div id="elements-grid" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 gap-2 pt-1 pb-4">
+          <!-- Populated dynamically -->
+        </div>
+      </aside>
+
+      <!-- Interactive Canvas Stage -->
+      <div class="flex-1 relative flex flex-col bg-slate-950 overflow-hidden">
+        <canvas id="reactor-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+        <!-- Reactor Controls Overlay -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 p-2 rounded-2xl glass-panel border border-slate-700/60 shadow-2xl z-10 backdrop-blur-md">
+          <button onclick="synthesizeMolecules()" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 via-indigo-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 active:scale-95 text-slate-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2">
+            <span>💥</span> Syntezuj Reakcję
+          </button>
+          <button onclick="clearReactor()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-semibold text-sm rounded-xl transition-all border border-slate-700/80 flex items-center gap-2">
+            <span>🗑️</span> Wyczyść
+          </button>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="lab-toast" class="absolute top-6 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-2 z-20">
+          <div id="lab-toast-card" class="px-5 py-3 rounded-2xl glass-panel border border-cyan-500/40 text-center shadow-2xl flex items-center gap-3">
+            <span id="lab-toast-icon" class="text-xl">✨</span>
+            <div>
+              <div id="lab-toast-title" class="font-bold text-sm text-cyan-300"></div>
+              <div id="lab-toast-subtitle" class="text-xs text-slate-400"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-bio" class="h-full w-full hidden flex-col p-4 md:p-6 overflow-y-auto max-w-6xl mx-auto space-y-6">
+      
+      <!-- Bio Header Banner -->
+      <div class="glass-panel p-6 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/30 via-slate-900/60 to-cyan-950/30 relative overflow-hidden">
+        <div class="relative z-10">
+          <div class="flex items-center gap-2 text-emerald-400 font-semibold text-xs tracking-wider uppercase mb-1">
+            <span>🔬 Synteza Polipeptydowa Zwierząt & Ssaków</span>
+          </div>
+          <h2 class="text-2xl font-bold text-slate-100">Syntezator Białek i Hormonów Zwierzęcych</h2>
+          <p class="text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+            Twórz swoiste łańcuchy peptydowe z aminokwasów kodowanych kodem genetycznym. Syntezuj m.in. <strong>Oksytocynę</strong>, <strong>Wazopresynę</strong>, <strong>Endorfiny</strong>, <strong>Insulinę</strong> czy <strong>Glukagon</strong>!
+          </p>
+        </div>
+      </div>
+
+      <!-- Amino Acid Selection Palette -->
+      <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Dostępne Aminokwasy Budulcowe</h3>
+        <div id="amino-palette" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Current Peptide Chain Visualizer -->
+      <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Twój Łańcuch Polipeptydowy</h3>
+          <span id="chain-length" class="text-xs text-slate-500 font-mono">Długość: 0 AA</span>
+        </div>
+
+        <div id="peptide-chain-container" class="min-h-[110px] p-4 bg-slate-950/80 rounded-xl border border-slate-800/80 flex items-center gap-2 overflow-x-auto">
+          <span class="text-sm text-slate-600 italic mx-auto">Wybierz aminokwasy powyżej, aby zbudować łańcuch peptydowy...</span>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button onclick="verifyProteinSequence()" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-slate-950 font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+            <span>🧬</span> Testuj Aktywność Biologiczną
+          </button>
+          <button onclick="clearPeptideChain()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-semibold text-sm rounded-xl transition-all border border-slate-700/80">
+            Wyczyść Łańcuch
+          </button>
+        </div>
+      </div>
+
+      <!-- Biological Feedback Result Box -->
+      <div id="protein-result-box" class="hidden glass-panel p-6 rounded-2xl transition-all duration-300">
+        <div class="flex items-start gap-4">
+          <div id="protein-result-icon" class="text-3xl p-3 rounded-2xl bg-slate-800/80 border border-slate-700 shrink-0"></div>
+          <div class="space-y-2 flex-1">
+            <div class="flex items-center justify-between">
+              <h4 id="protein-result-title" class="text-lg font-bold text-slate-100"></h4>
+              <span id="protein-result-badge" class="px-3 py-1 rounded-full text-xs font-bold tracking-wide"></span>
+            </div>
+            <p id="protein-result-sequence" class="text-xs font-mono text-cyan-400 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800 inline-block"></p>
+            <p id="protein-result-desc" class="text-sm text-slate-300 leading-relaxed pt-1"></p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <section id="tab-encyclopedia" class="h-full w-full hidden flex-col p-4 md:p-6 overflow-y-auto max-w-6xl mx-auto space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-100">Encyklopedia Odkryć</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Dyskretny rejestr zsyntetyzowanych cząsteczek chemicznych oraz aktywnych białek</p>
+        </div>
+        <div id="encyclopedia-status" class="text-xs text-cyan-400 bg-cyan-950/50 border border-cyan-800/60 px-3 py-1.5 rounded-xl font-semibold">
+          Odkryto 0
+        </div>
+      </div>
+
+      <!-- Discovery Cards Grid (Strictly Name and Formula) -->
+      <div id="encyclopedia-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playAudioTone(freq, type = 'sine', duration = 0.15, gainVal = 0.08) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+
+    function playSuccessSound() {
+      playAudioTone(523.25, 'triangle', 0.12, 0.1);
+      setTimeout(() => playAudioTone(659.25, 'triangle', 0.12, 0.1), 80);
+      setTimeout(() => playAudioTone(783.99, 'triangle', 0.25, 0.12), 160);
+    }
+
+    function playFailSound() {
+      playAudioTone(220, 'sawtooth', 0.15, 0.08);
+      setTimeout(() => playAudioTone(196, 'sawtooth', 0.25, 0.08), 120);
+    }
+
+    const ELEMENTS_DATABASE = {
+      // Niemetale & Gazy
+      H:  { name: 'Wodór', cat: 'nonmetal', color: '#f8fafc', textColor: '#0f172a' },
+      He: { name: 'Hel', cat: 'halogen', color: '#e0e7ff', textColor: '#0f172a' },
+      B:  { name: 'Bor', cat: 'nonmetal', color: '#ca8a04', textColor: '#ffffff' },
+      C:  { name: 'Węgiel', cat: 'nonmetal', color: '#334155', textColor: '#ffffff' },
+      N:  { name: 'Azot', cat: 'nonmetal', color: '#3b82f6', textColor: '#ffffff' },
+      O:  { name: 'Tlen', cat: 'nonmetal', color: '#ef4444', textColor: '#ffffff' },
+      F:  { name: 'Fluor', cat: 'halogen', color: '#06b6d4', textColor: '#0f172a' },
+      Ne: { name: 'Neon', cat: 'halogen', color: '#f43f5e', textColor: '#ffffff' },
+      Si: { name: 'Krzem', cat: 'nonmetal', color: '#0284c7', textColor: '#ffffff' },
+      P:  { name: 'Fosfor', cat: 'nonmetal', color: '#f97316', textColor: '#ffffff' },
+      S:  { name: 'Siarka', cat: 'nonmetal', color: '#eab308', textColor: '#0f172a' },
+      Cl: { name: 'Chlor', cat: 'halogen', color: '#22c55e', textColor: '#0f172a' },
+      Ar: { name: 'Argon', cat: 'halogen', color: '#818cf8', textColor: '#ffffff' },
+      Se: { name: 'Selen', cat: 'nonmetal', color: '#d97706', textColor: '#ffffff' },
+      Br: { name: 'Brom', cat: 'halogen', color: '#991b1b', textColor: '#ffffff' },
+      Kr: { name: 'Krypton', cat: 'halogen', color: '#c084fc', textColor: '#0f172a' },
+      I:  { name: 'Jod', cat: 'halogen', color: '#68d391', textColor: '#0f172a' },
+      Xe: { name: 'Ksenon', cat: 'halogen', color: '#38bdf8', textColor: '#0f172a' },
+
+      // Metale Alkaliczne i Berylowce
+      Li: { name: 'Lit', cat: 'alkali', color: '#a855f7', textColor: '#ffffff' },
+      Be: { name: 'Beryl', cat: 'alkali', color: '#4ade80', textColor: '#0f172a' },
+      Na: { name: 'Sód', cat: 'alkali', color: '#c084fc', textColor: '#0f172a' },
+      Mg: { name: 'Magnez', cat: 'alkali', color: '#16a34a', textColor: '#ffffff' },
+      K:  { name: 'Potas', cat: 'alkali', color: '#d8b4fe', textColor: '#0f172a' },
+      Ca: { name: 'Wapń', cat: 'alkali', color: '#94a3b8', textColor: '#0f172a' },
+      Rb: { name: 'Rubid', cat: 'alkali', color: '#e879f9', textColor: '#0f172a' },
+      Sr: { name: 'Stront', cat: 'alkali', color: '#cbd5e1', textColor: '#0f172a' },
+      Cs: { name: 'Cez', cat: 'alkali', color: '#f472b6', textColor: '#0f172a' },
+      Ba: { name: 'Bar', cat: 'alkali', color: '#64748b', textColor: '#ffffff' },
+
+      // Metale Przejściowe & Pozostałe Metale
+      Al: { name: 'Glin', cat: 'transition', color: '#94a3b8', textColor: '#0f172a' },
+      Sc: { name: 'Skand', cat: 'transition', color: '#64748b', textColor: '#ffffff' },
+      Ti: { name: 'Tytan', cat: 'transition', color: '#cbd5e1', textColor: '#0f172a' },
+      V:  { name: 'Wanad', cat: 'transition', color: '#475569', textColor: '#ffffff' },
+      Cr: { name: 'Chrom', cat: 'transition', color: '#e2e8f0', textColor: '#0f172a' },
+      Mn: { name: 'Mangan', cat: 'transition', color: '#a855f7', textColor: '#ffffff' },
+      Fe: { name: 'Żelazo', cat: 'transition', color: '#b45309', textColor: '#ffffff' },
+      Co: { name: 'Kobalt', cat: 'transition', color: '#2563eb', textColor: '#ffffff' },
+      Ni: { name: 'Nikiel', cat: 'transition', color: '#10b981', textColor: '#ffffff' },
+      Cu: { name: 'Miedź', cat: 'transition', color: '#f97316', textColor: '#ffffff' },
+      Zn: { name: 'Cynk', cat: 'transition', color: '#64748b', textColor: '#ffffff' },
+      Ga: { name: 'Gal', cat: 'transition', color: '#a3e635', textColor: '#0f172a' },
+      Ge: { name: 'German', cat: 'transition', color: '#22d3ee', textColor: '#0f172a' },
+      As: { name: 'Arsen', cat: 'transition', color: '#f43f5e', textColor: '#ffffff' },
+      Ag: { name: 'Srebro', cat: 'transition', color: '#e2e8f0', textColor: '#0f172a' },
+      Cd: { name: 'Kadm', cat: 'transition', color: '#f1f5f9', textColor: '#0f172a' },
+      In: { name: 'Ind', cat: 'transition', color: '#818cf8', textColor: '#ffffff' },
+      Sn: { name: 'Cyna', cat: 'transition', color: '#94a3b8', textColor: '#0f172a' },
+      Sb: { name: 'Antymon', cat: 'transition', color: '#fb923c', textColor: '#0f172a' },
+      Te: { name: 'Tellur', cat: 'transition', color: '#facc15', textColor: '#0f172a' },
+      Au: { name: 'Złoto', cat: 'transition', color: '#eab308', textColor: '#0f172a' },
+      Hg: { name: 'Rtęć', cat: 'transition', color: '#94a3b8', textColor: '#0f172a' },
+      Tl: { name: 'Tal', cat: 'transition', color: '#f472b6', textColor: '#0f172a' },
+      Pb: { name: 'Ołów', cat: 'transition', color: '#475569', textColor: '#ffffff' },
+      Bi: { name: 'Bizmut', cat: 'transition', color: '#a855f7', textColor: '#ffffff' },
+      U:  { name: 'Uran', cat: 'transition', color: '#22c55e', textColor: '#0f172a' }
+    };
+
+    const CHEMICAL_RECIPES = {
+      "H,H,O": { name: "Woda", formula: "H₂O" },
+      "C,O,O": { name: "Dwutlenek węgla", formula: "CO₂" },
+      "C,O": { name: "Tlenek węgla", formula: "CO" },
+      "Cl,H": { name: "Kwas solny", formula: "HCl" },
+      "Cl,Na": { name: "Chlorek sodu (Sól kuchenna)", formula: "NaCl" },
+      "H,H,O,O,O,O,S": { name: "Kwas siarkowy(VI)", formula: "H₂SO₄" },
+      "H,H,O,O,O,S": { name: "Kwas siarkowy(IV)", formula: "H₂SO₃" },
+      "H,H,S": { name: "Siarkowodór", formula: "H₂S" },
+      "C,H,H,H,H": { name: "Metan", formula: "CH₄" },
+      "C,C,H,H,H,H,H,H,O": { name: "Etanol", formula: "C₂H₅OH" },
+      "C,H,H,H,H,O": { name: "Metanol", formula: "CH₃OH" },
+      "C,C,H,H,H,H,O,O": { name: "Kwas octowy", formula: "CH₃COOH" },
+      "C,H,H,O,O": { name: "Kwas mrówkowy", formula: "HCOOH" },
+      "H,H,H,N": { name: "Amoniak", formula: "NH₃" },
+      "H,N,O,O,O": { name: "Kwas azotowy(V)", formula: "HNO₃" },
+      "H,N,O,O": { name: "Kwas azotowy(III)", formula: "HNO₂" },
+      "N,N,O": { name: "Podtlenek azotu", formula: "N₂O" },
+      "N,O": { name: "Tlenek azotu(II)", formula: "NO" },
+      "N,O,O": { name: "Dwutlenek azotu", formula: "NO₂" },
+      "H,H,O,O": { name: "Nadtlenek wodoru", formula: "H₂O₂" },
+      "O,O": { name: "Cząsteczka tlenu", formula: "O₂" },
+      "O,O,O": { name: "Ozon", formula: "O₃" },
+      "H,H": { name: "Cząsteczka wodoru", formula: "H₂" },
+      "N,N": { name: "Cząsteczka azotu", formula: "N₂" },
+      "Cl,Cl": { name: "Cząsteczka chloru", formula: "Cl₂" },
+      "F,F": { name: "Cząsteczka fluoru", formula: "F₂" },
+      "Br,Br": { name: "Cząsteczka bromu", formula: "Br₂" },
+      "I,I": { name: "Cząsteczka jodu", formula: "I₂" },
+      "H,Na,O": { name: "Wodorotlenek sodu", formula: "NaOH" },
+      "H,K,O": { name: "Wodorotlenek potasu", formula: "KOH" },
+      "Ca,H,H,O,O": { name: "Wodorotlenek wapnia", formula: "Ca(OH)₂" },
+      "Ca,O": { name: "Tlenek wapnia", formula: "CaO" },
+      "C,Ca,O,O,O": { name: "Węglan wapnia", formula: "CaCO₃" },
+      "C,Na,Na,O,O,O": { name: "Węglan sodu", formula: "Na₂CO₃" },
+      "C,H,Na,O,O,O": { name: "Wodorowęglan sodu", formula: "NaHCO₃" },
+      "Cl,K": { name: "Chlorek potasu", formula: "KCl" },
+      "Ca,Cl,Cl": { name: "Chlorek wapnia", formula: "CaCl₂" },
+      "Fe,Cl,Cl,Cl": { name: "Chlorek żelaza(III)", formula: "FeCl₃" },
+      "Cl,Cl,Cu": { name: "Chlorek miedzi(II)", formula: "CuCl₂" },
+      "Cu,O": { name: "Tlenek miedzi(II)", formula: "CuO" },
+      "Fe,Fe,O,O,O": { name: "Tlenek żelaza(III) (Rdzewienie)", formula: "Fe₂O₃" },
+      "Fe,O": { name: "Tlenek żelaza(II)", formula: "FeO" },
+      "Cu,O,O,O,O,S": { name: "Siarczan(VI) miedzi(II)", formula: "CuSO₄" },
+      "Fe,O,O,O,O,S": { name: "Siarczan(VI) żelaza(II)", formula: "FeSO₄" },
+      "H,H,H,O,O,O,O,P": { name: "Kwas fosforowy(V)", formula: "H₃PO₄" },
+      "C,C,H,H,H,H": { name: "Eten", formula: "C₂H₄" },
+      "C,C,H,H": { name: "Etyn (Acetylen)", formula: "C₂H₂" },
+      "C,C,C,H,H,H,H,H,H,H,H": { name: "Propan", formula: "C₃H₈" },
+      "C,C,C,C,H,H,H,H,H,H,H,H,H,H": { name: "Butan", formula: "C₄H₁₀" },
+      "C,C,C,C,C,C,H,H,H,H,H,H": { name: "Benzen", formula: "C₆H₆" },
+      "C,C,C,C,C,C,H,H,H,H,H,H,H,H,H,H,H,H,O,O,O,O,O,O": { name: "Glukoza", formula: "C₆H₁₂O₆" },
+      "C,C,C,H,H,H,H,H,H,H,H,O,O,O": { name: "Glicerol", formula: "C₃H₅(OH)₃" },
+      "C,H,N": { name: "Cyjanowodór", formula: "HCN" },
+      "F,F,Xe": { name: "Dwufluorek ksenonu", formula: "XeF₂" },
+      "Au,Cl,Cl,Cl": { name: "Chlorek złota(III)", formula: "AuCl₃" },
+      "Ag,Cl": { name: "Chlorek srebra", formula: "AgCl" },
+      "Ag,N,O,O,O": { name: "Azotan(V) srebra", formula: "AgNO₃" },
+      "Hg,O": { name: "Tlenek rtęci(II)", formula: "HgO" },
+      "Hg,Cl,Cl": { name: "Chlorek rtęci(II)", formula: "HgCl₂" },
+      "O,O,U": { name: "Tlenek uranu(IV)", formula: "UO₂" },
+      "F,F,F,F,F,F,U": { name: "Sześciofluorek uranu", formula: "UF₆" },
+      "Al,Al,O,O,O": { name: "Tlenek glinu (Korund)", formula: "Al₂O₃" },
+      "Al,Cl,Cl,Cl": { name: "Chlorek glinu", formula: "AlCl₃" },
+      "Mg,O": { name: "Tlenek magnezu", formula: "MgO" },
+      "Mg,Cl,Cl": { name: "Chlorek magnezu", formula: "MgCl₂" },
+      "O,O,Si": { name: "Dwutlenek krzemu (Kwarc)", formula: "SiO₂" },
+      "H,H,H,H,Si": { name: "Silan", formula: "SiH₄" },
+      "F,H": { name: "Fluorowodór", formula: "HF" },
+      "Br,H": { name: "Bromowodór", formula: "HBr" },
+      "H,I": { name: "Jodowodór", formula: "HI" },
+      "H,Li,O": { name: "Wodorotlenek litu", formula: "LiOH" },
+      "Cl,Li": { name: "Chlorek litu", formula: "LiCl" },
+      "Bi,Bi,O,O,O": { name: "Tlenek bizmutu", formula: "Bi₂O₃" },
+      "B,H,H,H": { name: "Borowodór (Boran)", formula: "BH₃" },
+      "B,Cl,Cl,Cl": { name: "Chlorek boru", formula: "BCl₃" },
+      "Cl,Cl,Cl,Cl,Si": { name: "Chlorek krzemu(IV)", formula: "SiCl₄" },
+      "H,C,N,O": { name: "Kwas cyjanowy", formula: "HOCN" },
+      "Cl,O,O": { name: "Dwutlenek chloru", formula: "ClO₂" },
+      "As,H,H,H": { name: "Arsenowodór (Arsyna)", formula: "AsH₃" },
+      "Cr,O,O,O": { name: "Tlenek chromu(VI)", formula: "CrO₃" },
+      "Mn,Mn,O,O,O,O,O,O,O": { name: "Tlenek manganu(VII)", formula: "Mn₂O₇" },
+      "Mn,O,O": { name: "Tlenek manganu(IV) (Brunatnik)", formula: "MnO₂" },
+      "Zn,Cl,Cl": { name: "Chlorek cynku", formula: "ZnCl₂" },
+      "O,O,O,O,S,Zn": { name: "Siarczan(VI) cynku", formula: "ZnSO₄" },
+      "Ba,Cl,Cl": { name: "Chlorek baru (Wykrywacz siarczanów)", formula: "BaCl₂" },
+      "Cl,Cl,Sr": { name: "Chlorek strontu (Karminowy płomień)", formula: "SrCl₂" },
+      "Cl,Cl,Ni": { name: "Chlorek niklu(II) (Zielone kryształy)", formula: "NiCl₂" },
+      "Cl,Cl,Co": { name: "Chlorek kobaltu(II) (Wskaźnik wilgoci)", formula: "CoCl₂" },
+      "O,Pb": { name: "Tlenek ołowiu(II)", formula: "PbO" },
+      "I,I,Pb": { name: "Jodek ołowiu(II) (Złoty deszcz)", formula: "PbI₂" },
+      "O,O,Sn": { name: "Tlenek cyny(IV) (Kasyteryt)", formula: "SnO₂" },
+      "C,C,C,H,H,H,H,H,H": { name: "Propen", formula: "C₃H₆" },
+      "C,C,H,H,H,N": { name: "Acetonitryl", formula: "CH₃CN" },
+      "C,Cl,Cl,Cl,Cl": { name: "Tetrachlorek węgla", formula: "CCl₄" },
+      "K,Mn,O,O,O,O": { name: "Nadmanganian potasu (Kalejdoskop reakcji redox)", formula: "KMnO₄" },
+      "Cr,Cr,K,K,O,O,O,O,O,O,O": { name: "Dychromian potasu (Silny utleniacz)", formula: "K₂Cr₂O₇" },
+      "C,K,N": { name: "Cyjanek potasu", formula: "KCN" },
+      "Ba,O,O,O,O,S": { name: "Siarczan(VI) baru (Kontrast RTG / Biały osad)", formula: "BaSO₄" },
+      "O,O,O,O,P,S,Sr": { name: "Siarczan(VI) strontu", formula: "SrSO₄" },
+      "Cl,Cl,Fe": { name: "Chlorek żelaza(II)", formula: "FeCl₂" },
+      "O,O,O,O,S,Zn": { name: "Siarczan(VI) cynku", formula: "ZnSO₄" },
+      "Al,O,O,O,O,O,O,O,O,P,P,P": { name: "Fosforan(V) glinu", formula: "AlPO₄" },
+      "Cr,Cr,O,O,O": { name: "Tlenek chromu(III) (Zielony pigment)", formula: "Cr₂O₃" },
+      "Cr,O,O,O": { name: "Tlenek chromu(VI)", formula: "CrO₃" },
+      "Mn,O,O": { name: "Tlenek manganu(IV) (Brunatnik)", formula: "MnO₂" },
+      "Mn,Mn,O,O,O,O,O,O,O": { name: "Tlenek manganu(VII) (Wybuchowy olej)", formula: "Mn₂O₇" },
+      "Al,H,H,H,O,O,O": { name: "Wodorotlenek glinu (Amfoteryczny)", formula: "Al(OH)₃" },
+      "Cs,H,O": { name: "Wodorotlenek cezu (Skrajnie mocna zasada)", formula: "CsOH" },
+      "H,O,Rb": { name: "Wodorotlenek rubidu", formula: "RbOH" },
+      "B,H,H,H": { name: "Borowodór (Boran)", formula: "BH₃" },
+      "B,F,F,F": { name: "Trójfluorek boru", formula: "BF₃" },
+      "B,Cl,Cl,Cl": { name: "Chlorek boru", formula: "BCl₃" },
+      "Cl,Cl,Cl,P": { name: "Chlorek fosforu(III)", formula: "PCl₃" },
+      "Cl,Cl,Cl,Cl,Cl,P": { name: "Chlorek fosforu(V)", formula: "PCl₅" },
+      "F,F,F,F,Xe": { name: "Czterofluorek ksenonu", formula: "XeF₄" },
+      "F,F,F,F,F,F,Xe": { name: "Sześciofluorek ksenonu", formula: "XeF₆" },
+      "C,C,C,H,H,H,H,H,H": { name: "Propen", formula: "C₃H₆" },
+      "C,C,C,C,H,H,H,H,H,H,H,H": { name: "Buten", formula: "C₄H₈" },
+      "C,C,C,H,H,H,H,H,H,O": { name: "Aceton (Propanon)", formula: "CH₃COCH₃" },
+      "C,Cl,Cl,Cl,Cl": { name: "Tetrachlorek węgla (Rozpuszczalnik)", formula: "CCl₄" },
+      "C,H,H,O": { name: "Formaldehyd (Metanal)", formula: "HCHO" },
+      "C,C,H,H,H,H,O": { name: "Acetaldehyd (Etanal)", formula: "CH₃CHO" },
+      "K,K,O": { name: "tlenek potasu", formula: "K₂O" },
+      "Li,Li,O": { name: "Tlenek litu", formula: "Li₂O" },
+      "Na,Na,O": { name: "Tlenek sodu", formula: "Na₂O" },
+      "Rb,Rb,O": { name: "Tlenek rubidu", formula: "Rb₂O" },
+      "Cs,Cs,O": { name: "Tlenek cezu", formula: "Cs₂O" },
+      "Be,O": { name: "Tlenek berylu", formula: "BeO" },
+      "Sr,O": { name: "Tlenek strontu", formula: "SrO" },
+      "Ba,O": { name: "Tlenek baru", formula: "BaO" },
+      "Cu,Cu,O": { name: "Tlenek miedzi(I)", formula: "Cu₂O" },
+      "Cr,O": { name: "Tlenek chromu", formula: "CrO" },
+    };
+
+    const AMINO_ACIDS = [
+      { code: 'Cys', name: 'Cysteina' },
+      { code: 'Tyr', name: 'Tyrozyna' },
+      { code: 'Ile', name: 'Izoleucyna' },
+      { code: 'Gln', name: 'Glutamina' },
+      { code: 'Asn', name: 'Asparagina' },
+      { code: 'Pro', name: 'Prolina' },
+      { code: 'Leu', name: 'Leucyna' },
+      { code: 'Gly', name: 'Glicyna' },
+      { code: 'Phe', name: 'Fenyloalanina' },
+      { code: 'Arg', name: 'Arginina' },
+      { code: 'Met', name: 'Metionina' },
+      { code: 'Lys', name: 'Lizyna' },
+      { code: 'His', name: 'Histydyna' },
+      { code: 'Glu', name: 'Kwas glutaminowy' },
+      { code: 'Asp', name: 'Kwas asparaginianowy' },
+      { code: 'Ser', name: 'Seryna' },
+      { code: 'Thr', name: 'Treonina' },
+      { code: 'Ala', name: 'Alanina' },
+      { code: 'Val', name: 'Walina' },
+      { code: 'Trp', name: 'Tryptofan' }
+    ];
+
+    const FUNCTIONAL_ANIMAL_PROTEINS = {
+      "Cys-Tyr-Ile-Gln-Asn-Cys-Pro-Leu-Gly": {
+        name: "Oksytocyna",
+        type: "Hormon Peptydowy Ssaków",
+        desc: "Odpowiada za więzi społeczne, zaufanie, skurcze macicy podczas porodu oraz wyrzut mleka u ssaków."
+      },
+      "Cys-Tyr-Phe-Gln-Asn-Cys-Pro-Arg-Gly": {
+        name: "Wazopresyna (ADH)",
+        type: "Hormon Antydiuretyczny",
+        desc: "Reguluje zagęszczanie moczu w nerkach ssaków oraz wpływa na obkurczanie naczyń krwionośnych."
+      },
+      "Tyr-Gly-Gly-Phe-Met": {
+        name: "Met-Enkefalina",
+        type: "Endorfina Zwierzęca",
+        desc: "Endogenny neuropeptyd opioidowy hamujący odczuwanie bólu w układzie nerwowym kręgowców."
+      },
+      "Tyr-Gly-Gly-Phe-Leu": {
+        name: "Leu-Enkefalina",
+        type: "Endorfina Zwierzęca",
+        desc: "Wariant neuropeptydu przeciwbólowego modulujący emocje i odczuwanie bólu w mózgu ssaków."
+      },
+      "His-Ser-Gln-Gly-Thr-Phe-Thr-Ser-Asp-Tyr": {
+        name: "Glukagon (Fragment aktywny)",
+        type: "Hormon Trzustkowy Ssaków",
+        desc: "Hormon wywołujący podniesienie poziomu glukozy we krwi zwierząt poprzez rozkład glikogenu w wątrobie."
+      },
+      "Gly-Ile-Cys-Cys-Ala-Ser-Val-Cys-Ser-Leu": {
+        name: "Insulina (Fragment łańcucha A)",
+        type: "Hormon Metaboliczny",
+        desc: "Odpowiada za obniżanie poziomu glukozy we krwi i magazynowanie jej w tkankach zwierzęcych."
+      },
+      "Arg-Pro-Pro-Gly-Phe-Ser-Pro-Phe-Arg": {
+        name: "Bradykinina",
+        type: "Peptyd Tkankowy",
+        desc: "Silny hormon lokalny ssaków. Powoduje rozszerzenie naczyń krwionośnych i kurczy mięśnie gładkie, wywołując m.in. reakcję bólową."
+      },
+      "Tyr-Pro-Ser-Lys-Pro-Asp-Asn-Pro-Gly-Glu": {
+        name: "Neuropeptyd Y (Fragment N-terminalny)",
+        type: "Neuroprzekaźnik Ssaków",
+        desc: "Peptyd wydzielany w mózgu ssaków, silnie stymulujący apetyt i regulujący bilans energetyczny organizmu."
+      },
+      "Cys-Phe-Cys-Asn-Asp-Pro-Arg-Ile-Trp": {
+        name: "Sarafotoksyna (Fragment jadu)",
+        type: "Toksyna Gada",
+        desc: "Peptyd wyizolowany z jadu żmii pustynnej (Atractaspis). Wywołuje natychmiastowy, potężny skurcz naczyń wieńcowych serca."
+      },
+      "Gly-Phe-Gly-Ser-Asp-Gly-Cys-Pro-Cys-His": {
+        name: "Konotoksyna (Fragment jadu)",
+        type: "Toksyna Bezkręgowca",
+        desc: "Składnik jadu drapieżnych ślimaków morskich (Stożków). Blokuje receptory nerwowe, paraliżując ofiarę w ułamku sekundy."
+      },
+      "Gly-Ile-Gly-Ala-Val-Leu-Lys-Val-Leu-Thr": {
+        name: "Melityna (Fragment jadu pszczelego)",
+        type: "Toksyna Owadzia",
+        desc: "Główny składnik jadu pszczoły miodnej. Rozrywa błony komórkowe czerwonych krwinek, wywołując silny ból i stan zapalny."
+      },
+      "Lys-Trp-Lys-Ala-Ala-Val-Gly-Ala-Leu-Pro": {
+        name: "Medybaryna (Fragment jadu meduzy)",
+        type: "Toksyna Parzydełkowca",
+        desc: "Składnik jadu osy morskiej, jednego z najbardziej jadowitych stworzeń na Ziemi. Powoduje gwałtowny paraliż mięśnia sercowego."
+      },
+      "Ser-Tyr-Ser-Met-Glu-His-Phe-Arg-Trp-Gly": {
+        name: "Kortykotropina (ACTH - Fragment aktywny)",
+        type: "Hormon Przysadki Mózgowej",
+        desc: "Kluczowy element osi stresu. Stymuluje korę nadnerczy do wydzielania kortyzolu, mobilizując organizm do walki lub ucieczki."
+      },
+      "Arg-Pro-Lys-Pro-Gln-Gln-Phe-Phe-Gly-Leu": {
+        name: "Substancja P",
+        type: "Neuropeptyd Bólowy",
+        desc: "Odpowiada za transmisję sygnałów bólowych do ośrodkowego układu nerwowego. Bierze udział w regulacji lęku i stresu."
+      },
+      "Trp-Ala-Gly-Gly-Asp-Ala-Ser-Gly-Glu": {
+        name: "Peptyd Delta (DSIP)",
+        type: "Neuropeptyd Regulacyjny",
+        desc: "Związek uwalniany w mózgu ssaków, który indukuje głęboką fazę snu wolnofalowego (NREM) oraz redukuje stres."
+      },
+      "Tyr-Val-Asp-Asp-Phe-Asn-Leu-Tyr-Met-Leu": {
+        name: "Toksyna Botulinowa (Jad kiełbasiany - Fragment)",
+        type: "Neurotoksyna Bakteryjna",
+        desc: "Najsilniejsza znana toksyna naturalna. Blokuje wydzielanie acetylocholiny, prowadząc do wiotkiego paraliżu mięśni."
+      },
+      "Ile-Phe-Lys-Cys-Pro-Leu-Thr-Arg-Asn-Cys": {
+        name: "Rycyna (Fragment łańcucha A)",
+        type: "Fitotoksyna Roślinna",
+        desc: "Śmiertelnie niebezpieczne białko pochodzące z rącznika pospolitego. Całkowicie blokuje syntezę białek w komórkach ofiary."
+      }
+  };
+
+    let currentTab = 'lab';
+    let currentCategory = 'ALL';
+    let discoveredItems = new Set();
+    let activeAtoms = [];
+    let currentPeptideChain = [];
+
+    const canvas = document.getElementById('reactor-canvas');
+    const ctx = canvas.getContext('2d');
+
+    class NodeAtom {
+      constructor(symbol, x, y) {
+        this.symbol = symbol;
+        this.data = ELEMENTS_DATABASE[symbol] || { name: symbol, color: '#38bdf8', textColor: '#ffffff' };
+        this.x = x || Math.random() * (canvas.width - 100) + 50;
+        this.y = y || Math.random() * (canvas.height - 100) + 50;
+        this.radius = 20;
+        this.vx = (Math.random() - 0.5) * 2.5;
+        this.vy = (Math.random() - 0.5) * 2.5;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x - this.radius < 0) { this.x = this.radius; this.vx *= -1; }
+        if (this.x + this.radius > canvas.width) { this.x = canvas.width - this.radius; this.vx *= -1; }
+        if (this.y - this.radius < 0) { this.y = this.radius; this.vy *= -1; }
+        if (this.y + this.radius > canvas.height) { this.y = canvas.height - this.radius; this.vy *= -1; }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+        ctx.fillStyle = `${this.data.color}25`;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.data.color;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.stroke();
+
+        ctx.fillStyle = this.data.textColor;
+        ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.symbol, this.x, this.y);
+      }
+    }
+
+    function resizeCanvas() {
+      if (!canvas.parentElement) return;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function renderCanvasLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < activeAtoms.length; i++) {
+        for (let j = i + 1; j < activeAtoms.length; j++) {
+          const a = activeAtoms[i];
+          const b = activeAtoms[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < 140) {
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            const alpha = 1 - (dist / 140);
+            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.5})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      activeAtoms.forEach(atom => {
+        atom.update();
+        atom.draw();
+      });
+
+      requestAnimationFrame(renderCanvasLoop);
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = "cat-filter-btn px-2 py-1 rounded bg-slate-800 text-cyan-400 font-semibold border border-slate-700";
+        } else {
+          btn.className = "cat-filter-btn px-2 py-1 rounded bg-slate-950 text-slate-400 hover:text-slate-200";
+        }
+      });
+      initElementButtons();
+    }
+
+    function initElementButtons() {
+      const grid = document.getElementById('elements-grid');
+      grid.innerHTML = '';
+
+      Object.keys(ELEMENTS_DATABASE).forEach(symbol => {
+        const el = ELEMENTS_DATABASE[symbol];
+        if (currentCategory !== 'ALL' && el.cat !== currentCategory) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'glass-card p-2 rounded-xl flex flex-col items-center justify-center gap-1 group active:scale-95';
+        btn.onclick = () => addAtomToReactor(symbol);
+
+        btn.innerHTML = `
+          <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shadow-md" style="background-color: ${el.color}; color: ${el.textColor}">
+            ${symbol}
+          </span>
+          <span class="text-[10px] font-medium text-slate-400 group-hover:text-slate-200 transition-colors truncate w-full text-center">${el.name}</span>
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    function initAminoPalette() {
+      const palette = document.getElementById('amino-palette');
+      palette.innerHTML = '';
+
+      AMINO_ACIDS.forEach(aa => {
+        const btn = document.createElement('button');
+        btn.className = 'glass-card p-2.5 rounded-xl border border-emerald-500/20 hover:border-emerald-400/50 flex flex-col items-start gap-0.5 group active:scale-95 text-left';
+        btn.onclick = () => addAminoAcid(aa.code);
+
+        btn.innerHTML = `
+          <div class="flex items-center justify-between w-full">
+            <span class="font-mono text-xs font-bold text-emerald-400">${aa.code}</span>
+            <span class="text-[9px] text-slate-500">+ Dodaj</span>
+          </div>
+          <span class="text-[11px] text-slate-300 font-medium truncate w-full">${aa.name}</span>
+        `;
+        palette.appendChild(btn);
+      });
+    }
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      ['lab', 'bio', 'encyclopedia'].forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        const sec = document.getElementById(`tab-${t}`);
+        if (t === tabId) {
+          btn.className = "px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all text-cyan-400 bg-slate-800 shadow-sm border border-slate-700/60 flex items-center gap-2";
+          sec.classList.remove('hidden');
+          sec.classList.add('flex');
+        } else {
+          btn.className = "px-3 md:px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-slate-200 flex items-center gap-2";
+          sec.classList.add('hidden');
+          sec.classList.remove('flex');
+        }
+      });
+
+      if (tabId === 'lab') resizeCanvas();
+      if (tabId === 'encyclopedia') renderEncyclopedia();
+    }
+
+    function addAtomToReactor(symbol) {
+      playAudioTone(440, 'sine', 0.08, 0.05);
+      activeAtoms.push(new NodeAtom(symbol));
+    }
+
+    function clearReactor() {
+      playAudioTone(300, 'sine', 0.1, 0.05);
+      activeAtoms = [];
+    }
+
+    function synthesizeMolecules() {
+      if (activeAtoms.length === 0) {
+        showToast("Komora pusta!", "Dodaj pierwiastki z lewej palety.", "⚠️", false);
+        playFailSound();
+        return;
+      }
+
+      const currentKey = activeAtoms.map(a => a.symbol).sort().join(',');
+
+      if (CHEMICAL_RECIPES[currentKey]) {
+        const molecule = CHEMICAL_RECIPES[currentKey];
+        discoveredItems.add(`chem_${currentKey}`);
+        playSuccessSound();
+        showToast(`Odkryto: ${molecule.name}!`, `Wzór sumaryczny: ${molecule.formula}`, "✨", true);
+        clearReactor();
+        updateDiscoveryCount();
+      } else {
+        playFailSound();
+        showToast("Nieudana synteza!", "Taki układ pierwiastków nie tworzy znanej trwałości chemicznej.", "💥", false);
+      }
+    }
+
+    function showToast(title, subtitle, icon = "✨", isSuccess = true) {
+      const toast = document.getElementById('lab-toast');
+      const card = document.getElementById('lab-toast-card');
+      document.getElementById('lab-toast-title').innerText = title;
+      document.getElementById('lab-toast-subtitle').innerText = subtitle;
+      document.getElementById('lab-toast-icon').innerText = icon;
+
+      if (isSuccess) {
+        card.className = "px-5 py-3 rounded-2xl glass-panel border border-cyan-500/60 bg-slate-900/90 text-center shadow-2xl flex items-center gap-3 glow-cyan";
+      } else {
+        card.className = "px-5 py-3 rounded-2xl glass-panel border border-rose-500/60 bg-slate-900/90 text-center shadow-2xl flex items-center gap-3";
+      }
+
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+      }, 3500);
+    }
+
+    function addAminoAcid(code) {
+      playAudioTone(587.33, 'sine', 0.1, 0.05);
+      currentPeptideChain.push(code);
+      renderPeptideChain();
+    }
+
+    function clearPeptideChain() {
+      playAudioTone(300, 'sine', 0.1, 0.05);
+      currentPeptideChain = [];
+      renderPeptideChain();
+      document.getElementById('protein-result-box').classList.add('hidden');
+    }
+
+    function renderPeptideChain() {
+      const container = document.getElementById('peptide-chain-container');
+      document.getElementById('chain-length').innerText = `Długość: ${currentPeptideChain.length} AA`;
+
+      if (currentPeptideChain.length === 0) {
+        container.innerHTML = '<span class="text-sm text-slate-600 italic mx-auto">Wybierz aminokwasy powyżej, aby zbudować łańcuch peptydowy...</span>';
+        return;
+      }
+
+      container.innerHTML = currentPeptideChain.map((code, index) => `
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="px-3 py-1.5 rounded-xl bg-gradient-to-b from-emerald-500/20 to-teal-500/10 border border-emerald-500/40 text-emerald-300 font-mono text-xs font-bold flex items-center gap-2 shadow-sm">
+            <span>${code}</span>
+            <button onclick="removeAminoAt(${index})" class="text-slate-500 hover:text-rose-400 transition-colors text-xs">✕</button>
+          </div>
+          ${index < currentPeptideChain.length - 1 ? '<span class="text-slate-600 font-bold text-xs">➔</span>' : ''}
+        </div>
+      `).join('');
+    }
+
+    function removeAminoAt(idx) {
+      playAudioTone(350, 'sine', 0.08, 0.05);
+      currentPeptideChain.splice(idx, 1);
+      renderPeptideChain();
+    }
+
+    function verifyProteinSequence() {
+      if (currentPeptideChain.length === 0) {
+        showToast("Pusty łańcuch!", "Dodaj aminokwasy do łańcucha.", "🧬", false);
+        playFailSound();
+        return;
+      }
+
+      const seqKey = currentPeptideChain.join('-');
+      const resultBox = document.getElementById('protein-result-box');
+      const icon = document.getElementById('protein-result-icon');
+      const title = document.getElementById('protein-result-title');
+      const badge = document.getElementById('protein-result-badge');
+      const seqDisplay = document.getElementById('protein-result-sequence');
+      const desc = document.getElementById('protein-result-desc');
+
+      resultBox.classList.remove('hidden');
+      seqDisplay.innerText = `Sekwencja: ${seqKey}`;
+
+      if (FUNCTIONAL_ANIMAL_PROTEINS[seqKey]) {
+        const prot = FUNCTIONAL_ANIMAL_PROTEINS[seqKey];
+        discoveredItems.add(`bio_${seqKey}`);
+        playSuccessSound();
+
+        icon.innerText = "🐉";
+        title.innerText = prot.name;
+        badge.innerText = "✅ Aktywne Białko Zwierzęce";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        desc.innerText = prot.desc;
+
+        resultBox.className = "glass-panel p-6 rounded-2xl transition-all duration-300 border border-emerald-500/50 bg-emerald-950/20 glow-emerald";
+        updateDiscoveryCount();
+      } else {
+        playFailSound();
+        icon.innerText = "🧪";
+        title.innerText = "Nieaktywny Łańcuch Polipeptydowy";
+        badge.innerText = "⚠️ Brak Aktywności";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        desc.innerText = `Skonstruowano sekwencję ${currentPeptideChain.length} aminokwasów. Przestrzenne zwinięcie tej sekwencji nie tworzy znanego aktywnego białka u ssaków. Spróbuj powszechnych kombinacji (np. Oksytocyna: Cys-Tyr-Ile-Gln-Asn-Cys-Pro-Leu-Gly lub Endorfina: Tyr-Gly-Gly-Phe-Met).`;
+
+        resultBox.className = "glass-panel p-6 rounded-2xl transition-all duration-300 border border-slate-800 bg-slate-900/60";
+      }
+    }
+
+    function updateDiscoveryCount() {
+      const discoveredCount = discoveredItems.size;
+      document.getElementById('encyclopedia-count').innerText = discoveredCount;
+      document.getElementById('encyclopedia-status').innerText = `Odkryto ${discoveredCount} związków i białek`;
+    }
+
+    function renderEncyclopedia() {
+      const grid = document.getElementById('encyclopedia-grid');
+      grid.innerHTML = '';
+
+      if (discoveredItems.size === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-16 text-center text-slate-500 glass-panel rounded-2xl border border-slate-800">
+            <span class="text-4xl block mb-2">🔍</span>
+            <p class="font-semibold text-slate-400">Brak odkryć w rejestrze</p>
+            <p class="text-xs text-slate-600 mt-1">Przeprowadzaj reakcje w Reaktorze lub Syntezatorze Białek, aby odblokowywać wpisy.</p>
+          </div>
+        `;
+        return;
+      }
+
+      discoveredItems.forEach(itemKey => {
+        const card = document.createElement('div');
+        card.className = 'glass-card p-4 rounded-xl border border-slate-800 flex flex-col justify-between gap-3';
+
+        if (itemKey.startsWith('chem_')) {
+          const key = itemKey.replace('chem_', '');
+          const recipe = CHEMICAL_RECIPES[key];
+          card.innerHTML = `
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">Cząsteczka</span>
+              <h4 class="font-bold text-slate-100 text-sm mt-2">${recipe.name}</h4>
+            </div>
+            <div class="font-mono text-xs font-bold text-slate-300 bg-slate-950/70 px-3 py-1.5 rounded-lg border border-slate-800 text-center">
+              ${recipe.formula}
+            </div>
+          `;
+        } else if (itemKey.startsWith('bio_')) {
+          const key = itemKey.replace('bio_', '');
+          const protein = FUNCTIONAL_ANIMAL_PROTEINS[key];
+          card.innerHTML = `
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">Białko Zwierzęce</span>
+              <h4 class="font-bold text-slate-100 text-sm mt-2">${protein.name}</h4>
+            </div>
+            <div class="font-mono text-[11px] font-bold text-emerald-300 bg-slate-950/70 px-2.5 py-1.5 rounded-lg border border-slate-800 text-center truncate" title="${key}">
+              ${key}
+            </div>
+          `;
+        }
+
+        grid.appendChild(card);
+      });
+    }
+
+    window.onload = function() {
+      initElementButtons();
+      initAminoPalette();
+      resizeCanvas();
+      renderCanvasLoop();
+      updateDiscoveryCount();
+    };
+  </script>
+</body>
+</html>
