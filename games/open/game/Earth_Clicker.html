@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Cywilizacyjny</title>
+    <link rel="stylesheet" href="visual.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Pasek zasobów -->
+        <header id="resource-bar">
+            <div class="resource">
+                <img src="graphic/click_point.png" alt="Click Points" class="res-icon">
+                <span id="click-count">0</span>
+                <span class="res-label">Click Points</span>
+            </div>
+            <div class="resource">
+                <img src="graphic/resources_point.png" alt="Resource Points" class="res-icon">
+                <span id="resource-count">0</span>
+                <span class="res-label">Resource Points</span>
+            </div>
+            <div class="resource">
+                <img src="graphic/research_point.png" alt="Research Points" class="res-icon">
+                <span id="research-count">0</span>
+                <span class="res-label">Research Points</span>
+            </div>
+            <div class="resource">
+                <img src="graphic/coin_point.png" alt="Coin Points" class="res-icon">
+                <span id="coin-count">0,00</span>
+                <span class="res-label">Coin Points</span>
+            </div>
+        </header>
+
+        <!-- Nawigacja po zakładkach -->
+        <nav id="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('clicker-tab')">1. Klikanie</button>
+            <button class="tab-btn" onclick="switchTab('upgrades-tab')">2. Drzewko Ulepszeń</button>
+            <button class="tab-btn" onclick="switchTab('tech-tab')">3. Postęp i Badania</button>
+            <button class="tab-btn" onclick="switchTab('trade-tab')">4. Handel i Crafting</button>
+        </nav>
+
+        <!-- Treść zakładek -->
+        <main id="tab-content">
+            <!-- Zakładka 1: Klikanie -->
+            <section id="clicker-tab" class="tab-pane active" style="position: relative;">
+                <button id="shop-btn" class="shop-trigger-btn" onclick="openShopModal()">
+                    <img src="graphic/shop_icon.png" alt="Sklep" title="Otwórz Sklep">
+                </button>
+
+                <div class="clicker-center">
+                    <div class="stats-panel" style="margin-bottom: 10px; text-align: center;">
+                        <div>Na kliknięcie: <strong id="click-power-display">1</strong> <img src="graphic/click_point.png" class="currency-inline-icon"></div>
+                        <div>Pasywnie: <strong id="cps-display">0</strong> <img src="graphic/click_point.png" class="currency-inline-icon">/s</div>
+                        <div id="active-booster-list" style="margin-top: 6px; display: flex; flex-direction: column; gap: 2px;"></div>
+                    </div>
+
+                    <button id="main-click-btn"></button>
+                    <p style="font-size: 0.9rem; color: #a0a0a0;">Szansa na Resource Point przy kliknięciu: 10%</p>
+                </div>
+            </section>
+
+            <!-- Zakładka 2: Drzewko ulepszeń z podzakładkami -->
+            <section id="upgrades-tab" class="tab-pane">
+                <h2>Drzewko Ulepszeń</h2>
+                <!-- Podzakładki w Zakładce 2 -->
+                <div class="subtab-container">
+                    <button id="subtab-upgrades-btn" class="subtab-btn active" onclick="switchSubTab('standard')">Standardowe Ulepszenia</button>
+                    <button id="subtab-buttons-btn" class="subtab-btn" onclick="switchSubTab('buttons')">Ulepszenia Przycisków</button>
+                    <button id="subtab-mastery-btn" class="subtab-btn" onclick="switchSubTab('mastery')">Mistrzostwo</button>
+                </div>
+
+                <!-- Podzakładka 1: Standardowe -->
+                <div id="subtab-standard" class="subtab-pane active">
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #00fff5; margin-bottom: 8px;">Ulepszenia Kliknięć</h4>
+                        <div id="upgrades-click-container" class="upgrades-list"></div>
+                    </div>
+                    <div>
+                        <h4 style="color: #00fff5; margin-bottom: 8px;">Ulepszenia Click Point / s</h4>
+                        <div id="upgrades-passive-container" class="upgrades-list"></div>
+                    </div>
+                </div>
+
+                <!-- Podzakładka 2: Ulepszenia Przycisków (Minimalne Mnożniki) -->
+                <div id="subtab-buttons" class="subtab-pane" style="display: none;">
+                    <h4 style="color: #00fff5; margin-bottom: 8px;">Mnożniki Przycisków i Akcji</h4>
+                    <p style="font-size: 0.85rem; color: #a0a0a0; margin-bottom: 10px;">Ulepszaj minimalne mnożniki, aby zwiększyć efektywność całej gry!</p>
+                    <div id="button-upgrades-container" class="upgrades-list"></div>
+                </div>
+
+                <!-- NOWY KONTENER DLA 3. PODZAKŁADKI -->
+                <div id="subtab-mastery" style="display: none;">
+                   <div id="mastery-upgrades-container" class="upgrades-list"></div>
+                </div>
+            </section>
+
+            <!-- Zakładka 3: Postęp, Badania i Przycisk Rebirth -->
+            <section id="tech-tab" class="tab-pane">
+                <div class="tech-layout">
+                    <div class="globe-window">
+                        <h2>Postęp Cywilizacji Ziemi</h2>
+                        <div class="earth-wrapper">
+                            <img src="graphic/earth.png" alt="Ziemia" id="earth-img">
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="tech-progress-bar"></div>
+                        </div>
+                        <p id="tech-level-display">Poziom Cywilizacji: 1</p>
+
+                        <div class="workers-display-box">
+                            <img src="graphic/workers.png" alt="Workers" id="workers-icon">
+                            <div class="workers-text">
+                                <span>Wolni Pracownicy:</span>
+                                <strong id="workers-count"><span id="worker-count">1</span></strong>
+                            </div>
+                        </div>
+
+                        <!-- Panel rekrutacji -->
+                        <div class="recruit-section">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <h4 style="color: #00fff5; font-size: 0.9rem; margin:0;">Rekrutacja Workerów</h4>
+                                <div class="batch-btns" style="display: flex; gap: 4px;">
+                                    <button class="batch-btn active" id="batch-1" onclick="setRecruitBatch(1)">1x</button>
+                                    <button class="batch-btn" id="batch-10" onclick="setRecruitBatch(10)">10x</button>
+                                    <button class="batch-btn" id="batch-max" onclick="setRecruitBatch('max')">Max</button>
+                                </div>
+                            </div>
+                            <div id="recruit-options-container"></div>
+                        </div>
+
+                        <!-- PRZYCISK REBIRTH W 3 ZAKŁADCE POD REKRUTACJĄ -->
+                        <!-- CAŁKOWICIE NAPRAWIONE OKIENKO REBIRTH -->
+<!-- OKIENKO REBIRTH Z DODANĄ GRAFIKĄ REBIRTH.PNG -->
+<div style="background: rgba(22, 33, 62, 0.9); padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; margin-top: 10px;">
+    
+    <!-- GÓRNY PASEK: Grafika rebirth.png + Tytuł po lewej -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <img src="graphic/rebirth.png" alt="Rebirth" style="width: 24px; height: 24px; object-fit: contain;" onerror="this.src='graphic/click_point.png'">
+            <span style="font-size: 0.8rem; font-weight: bold; color: #00fff5; font-family: 'Segoe UI', sans-serif;">Mnożnik Prestiżu (Rebirth)</span>
+        </div>
+    </div>
+    
+    <!-- DOLNY PASEK: Koszt z ikoną po lewej, czysty przycisk po prawej -->
+    <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'Segoe UI', sans-serif; margin-top: 2px;">
+        <span style="color: #ffffff;">
+            Koszt: <span id="rebirth-cost-display" style="font-weight: bold;">5.00B</span> <img src="graphic/click_point.png" class="currency-inline-icon"> = <strong style="color: #00fff5;">+x1.5 Globalny Mnożnik</strong>
+        </span>
+        <button class="upgrade-btn" id="rebirth-btn" onclick="triggerRebirth()">Wykonaj Rebirth</button>
+    </div>
+
+    <!-- Pasek postępu pod spodem -->
+    <div style="width: 100%; background: #1a1a2e; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px;">
+        <div id="rebirth-bar" style="width: 0%; height: 100%; background: #e94560;"></div>
+    </div>
+</div>
+
+
+                    </div>
+
+                    <div class="research-window">
+                        <h2>Okienko Badawcze</h2>
+                        <div class="generators-section" style="margin-bottom: 15px;">
+                            <h4 style="color: #00fff5; margin-bottom: 5px;">Powtarzalne Badania (Zajmują Workerów)</h4>
+                            <div id="research-generators"></div>
+                        </div>
+                        <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+                        <div id="research-container" class="upgrades-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Zakładka 4: Handel i Crafting -->
+            <section id="trade-tab" class="tab-pane">
+                <div class="trade-layout">
+                    <div class="trade-column">
+                        <h2>Zasoby i Przedmioty</h2>
+                        <button class="custom-action-btn" style="margin-bottom: 15px; width: 100%;" onclick="gatherRandomItem()">Zbierz losowy przedmiot</button>
+                        <div id="inventory-container" class="inventory-grid"></div>
+                    </div>
+                    <div class="trade-column">
+                        <h2>Stół Rzemieślniczy (Crafting)</h2>
+                        <div id="crafting-container" class="crafting-list"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Sklepu i Koła Fortuny -->
+    <div id="shop-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sklep i Koło Fortuny</h3>
+                <button class="modal-close-btn" onclick="closeShopModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Koło Fortuny -->
+                <div class="shop-section" style="text-align: center;">
+                    <h4>Koło Fortuny</h4>
+                    <p style="font-size: 0.8rem; color: #ccc;">Wylosuj darmowe nagrody co 10 minut!</p>
+                    <div style="margin: 10px auto;">
+                        <img src="graphic/fortune.png" alt="Koło Fortuny" class="fortune-wheel-img">
+                    </div>
+                    <div id="wheel-display" class="wheel-box">🏆 Kliknij Zakręć!</div>
+                    <button class="custom-action-btn" id="spin-wheel-btn" onclick="spinWheel()">Zakręć Kołem!</button>
+                </div>
+
+                <!-- Oferty Sklepu -->
+                <div class="shop-section">
+                    <h4>Boostery & Time Speed</h4>
+                    <div class="shop-grid">
+                        <div class="shop-item">
+                            <img src="graphic/booster.png" class="shop-card-img" alt="Booster">
+                            <h5>Mega Booster (17.5 min)</h5>
+                            <p>Zwiększa produkcję walut x2</p>
+                            <button class="upgrade-btn" onclick="buyShopItem('booster_17.5')">Kup (25 <img src="graphic/coin_point.png" class="currency-inline-icon">)</button>
+                        </div>
+                        <div class="shop-item">
+                            <img src="graphic/time_speed.png" class="shop-card-img" alt="Time Speed">
+                            <h5>Time Speed (15 min)</h5>
+                            <p>Natychmiastowy przyrost z 15 min</p>
+                            <button class="upgrade-btn" onclick="buyShopItem('timespeed_15')">Kup (35 <img src="graphic/coin_point.png" class="currency-inline-icon">)</button>
+                        </div>
+                        <div class="shop-item">
+                            <img src="graphic/resources_point.png" class="shop-card-img" alt="Wymiana">
+                            <h5>Wymiana Waluty</h5>
+                            <p>Zamień 1 <img src="graphic/resources_point.png" class="currency-inline-icon"> ➔ 150 <img src="graphic/click_point.png" class="currency-inline-icon"></p>
+                            <button class="upgrade-btn" onclick="buyShopItem('trade_rp_cp')">Wymień</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tajemnicze Skrzynie -->
+                <div class="shop-section">
+                    <h4>Tajemnicze Skrzynie</h4>
+                    <div class="shop-grid">
+                        <div class="shop-item">
+                            <img src="graphic/chest_booster.png" class="chest-img" alt="Skrzynia Booster">
+                            <h5>Skrzynka Booster</h5>
+                            <small>Mnożnik 1.5x-4x (2-15 min)</small>
+                            <button class="upgrade-btn" onclick="buyChest('booster')">Otwórz (75 <img src="graphic/coin_point.png" class="currency-inline-icon">)</button>
+                        </div>
+                        <div class="shop-item">
+                            <img src="graphic/chest_point.png" class="chest-img" alt="Skrzynia Point">
+                            <h5>Skrzynka Point</h5>
+                            <small>Nagroda: 100 do 100K CP</small>
+                            <button class="upgrade-btn" onclick="buyChest('point')">Otwórz (75 <img src="graphic/coin_point.png" class="currency-inline-icon">)</button>
+                        </div>
+                        <div class="shop-item">
+                            <img src="graphic/chest_time_speed.png" class="chest-img" alt="Skrzynia Time Speed">
+                            <h5>Skrzynka Time Speed</h5>
+                            <small>Czas od 1.5 min do 25 min</small>
+                            <button class="upgrade-btn" onclick="buyChest('time_speed')">Otwórz (75 <img src="graphic/coin_point.png" class="currency-inline-icon">)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-toast"></div>
+
+<!-- Kontener na losowe wydarzenie (pudełko event.png) -->
+<div id="random-event-box" style="display: none; position: fixed; zindex: 9999; cursor: pointer;">
+    <img src="graphic/event.png" alt="Event Box" style="width: 64px; height: 64px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+</div>
+
+<!-- Kontener na spadające punkty zasobów (dla piątego efektu) -->
+<div id="falling-resources-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998;"></div>
+
+    <script src="cod.js"></script>
+</body>
+</html>

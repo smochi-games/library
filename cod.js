@@ -14,6 +14,7 @@ function addGame(name, iconFilename, gameUrl) {
 addGame("Lab Bio-Simulation", "lab_bio.png", "games/open/lab_bio-simutation.html");
 addGame("Midnight Route 13", "route13.png", "games/open/midnight_route_13.html");
 addGame("Molecular & Protein Lab", "molecular.png", "games/open/Molecular_&_Protein_Lab.html");
+addGame("Earth Clicker", "earthC.png", "games/open/game/Earth_Clicker.html");
 // ========================================================
 
 // Automatyczne generowanie kafelków na stronie głównej

@@ -1,0 +1,563 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-image: url('graphic/backgroun.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#game-container {
+    width: 980px;
+    height: 720px;
+    background-color: rgba(22, 33, 62, 0.88);
+    backdrop-filter: blur(5px);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 2px solid rgba(0, 255, 245, 0.3);
+}
+
+/* Pasek zasobów */
+#resource-bar {
+    display: flex;
+    justify-content: space-around;
+    background-color: rgba(15, 52, 96, 0.9);
+    padding: 12px;
+    border-bottom: 2px solid #00fff5;
+}
+
+.resource {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.res-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.res-label {
+    font-size: 0.75rem;
+    color: #a0a0a0;
+}
+
+/* Nawigacja */
+#tab-nav {
+    display: flex;
+    background-color: rgba(15, 52, 96, 0.9);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    background-color: rgba(31, 66, 135, 0.8);
+}
+
+.tab-btn.active {
+    background-color: rgba(22, 33, 62, 0.95);
+    border-bottom: 3px solid #e94560;
+    font-weight: bold;
+}
+
+/* Zakładki */
+#tab-content {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.tab-pane {
+    display: none;
+    height: 100%;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Zakładka 1 - Przycisk główny */
+.clicker-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 15px;
+}
+
+#main-click-btn {
+    width: 180px;
+    height: 180px;
+    background-image: url('graphic/button_on.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.05s;
+}
+
+#main-click-btn:active {
+    background-image: url('graphic/button_off.png');
+    transform: scale(0.95);
+}
+
+/* Lista ulepszeń z paskami tekstowymi */
+.upgrades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.upgrade-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.bar-top {
+    background-image: url('graphic/up_text_bar.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    height: 36px;
+    padding: 8px 15px 0 15px;
+}
+
+.bar-top h4 {
+    color: #000000;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.bar-middle {
+    background-image: url('graphic/modle_text_bar.png');
+    background-repeat: repeat-y;
+    background-size: 100% auto;
+    padding: 4px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bar-middle p {
+    font-size: 0.85rem;
+    color: #000000;
+}
+
+.bar-middle small {
+    color: #333333;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.bar-down {
+    background-image: url('graphic/down_text_bar.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    height: 45px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 15px 8px 15px;
+}
+
+.upgrade-btn {
+    padding: 5px 14px;
+    background-color: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.upgrade-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* Przyciski wyboru ilości rekrutacji (1x, 10x, Max) */
+.batch-btn {
+    background-color: #0f3460;
+    border: 1px solid #00fff5;
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.batch-btn.active {
+    background-color: #00fff5;
+    color: #1a1a2e;
+}
+
+/* Zakładka 3 - Layout */
+.tech-layout {
+    display: flex;
+    gap: 15px;
+    height: 100%;
+}
+
+.globe-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(15, 52, 96, 0.8);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 245, 0.2);
+    overflow-y: auto;
+}
+
+.earth-wrapper {
+    margin: 5px 0;
+}
+
+#earth-img {
+    width: 100px;
+    height: 100px;
+    animation: spin 20s linear infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 14px;
+    background-color: #1a1a2e;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#tech-progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #00fff5;
+    transition: width 0.3s;
+}
+
+.workers-display-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: rgba(22, 33, 62, 0.9);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: 1px solid #00fff5;
+    width: 100%;
+    justify-content: center;
+}
+
+#workers-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.workers-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+
+.workers-text strong {
+    color: #00fff5;
+    font-size: 1rem;
+}
+
+.recruit-section {
+    margin-top: 10px;
+    width: 100%;
+    background: rgba(22, 33, 62, 0.7);
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.research-window {
+    flex: 1.1;
+    background-color: rgba(15, 52, 96, 0.8);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 255, 245, 0.2);
+}
+
+/* Zakładka 4 - Handel i Crafting */
+.trade-layout {
+    display: flex;
+    gap: 15px;
+    height: 100%;
+}
+
+.trade-column {
+    flex: 1;
+    background-color: rgba(15, 52, 96, 0.85);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 255, 245, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.item-card {
+    background: rgba(22, 33, 62, 0.9);
+    border: 1px solid rgba(0, 255, 245, 0.3);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+}
+
+.item-card img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.item-card span {
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.crafting-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.craft-row {
+    background: rgba(22, 33, 62, 0.9);
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.85rem;
+}
+
+.custom-action-btn {
+    padding: 6px 12px;
+    background-color: #e94560;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.custom-action-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.currency-inline-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    object-fit: contain;
+    margin: 0 2px;
+}
+
+.crafting-item-icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    object-fit: contain;
+    margin: 0 2px;
+}
+
+/* Pływające powiadomienia */
+#notification-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(233, 69, 96, 0.95);
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    font-size: 0.9rem;
+    font-weight: bold;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateY(20px);
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+#notification-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Przycisk Sklepu w 1 zakładce */
+.shop-trigger-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+    z-index: 10;
+}
+.shop-trigger-btn:hover {
+    transform: scale(1.1);
+}
+.shop-trigger-btn img {
+    width: 42px;
+    height: 42px;
+}
+
+/* Modal Sklepu i Koła Fortuny */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: #16213e;
+    border: 2px solid #00fff5;
+    border-radius: 10px;
+    width: 90%; max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    color: #fff; padding: 15px;
+}
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #00fff5; padding-bottom: 8px;
+}
+.modal-close-btn {
+    background: none; border: none; color: #ff4757; font-size: 1.5rem; cursor: pointer;
+}
+.shop-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px; padding: 10px; margin-top: 12px;
+}
+.shop-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 8px;
+}
+.shop-item {
+    background: rgba(15, 52, 96, 0.8);
+    border-radius: 6px; padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+}
+.shop-card-img, .chest-img {
+    width: 42px; height: 42px; margin-bottom: 5px; object-fit: contain;
+}
+.fortune-wheel-img {
+    width: 90px; height: 90px; object-fit: contain; animation: spin-slow 10s linear infinite;
+}
+.wheel-box {
+    font-size: 1.1rem; font-weight: bold; color: #f1c40f; background: #0f3460; padding: 10px; border-radius: 8px; margin: 8px 0; border: 1px dashed #f1c40f;
+}
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+#active-booster-list {
+    margin-top: 6px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 2px;
+    max-height: 120px;       /* Maksymalna wysokość listy boosterów */
+    overflow-y: auto;        /* Włącza pionowy pasek przewijania, gdy boosterów jest dużo */
+    padding-right: 4px;
+}
+
+/* Nowoczesny pasek nawigacji podzakładek */
+.subtab-container {
+    display: flex;
+    gap: 10px;
+    background-color: rgba(15, 52, 96, 0.5);
+    padding: 6px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(0, 255, 245, 0.1);
+}
+
+.subtab-btn {
+    flex: 1;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: #b0b0b0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+    white-space: nowrap; /* Zapobiega łamaniu tekstu w przycisku */
+}
+
+.subtab-btn:hover {
+    background-color: rgba(233, 69, 96, 0.1);
+    color: #ffffff;
+}
+
+.subtab-btn.active {
+    background-color: #e94560; /* Kolor dopasowany do głównych akcentów gry (karmazyn) */
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
