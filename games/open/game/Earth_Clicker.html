@@ -207,6 +207,23 @@
                     <button class="custom-action-btn" id="spin-wheel-btn" onclick="spinWheel()">Zakręć Kołem!</button>
                 </div>
 
+<div class="shop-section" style="border: 1px solid #f1c40f; background: rgba(241, 196, 15, 0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h4 style="color: #f1c40f; display: flex; align-items: center; gap: 6px;">
+            <span>📆</span> Nagroda Codzienna
+        </h4>
+        <span style="font-size: 0.9rem; font-weight: bold; color: #e94560;">
+            Seria: <span id="daily-streak-display">0</span> 🔥
+        </span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; text-align: center;">
+        <p style="font-size: 0.8rem; color: #a0a0a0;">Wchodź do gry codziennie, aby utrzymać serię i zdobywać losowe pakiety surowców, walut premium, robotników lub boosterów!</p>
+        <button id="daily-claim-btn" class="custom-action-btn" style="width: 100%; padding: 10px; font-size: 0.9rem;" onclick="claimDailyReward()">
+            Sprawdzanie statusu...
+        </button>
+    </div>
+</div>
+
                 <!-- Oferty Sklepu -->
                 <div class="shop-section">
                     <h4>Boostery & Time Speed</h4>

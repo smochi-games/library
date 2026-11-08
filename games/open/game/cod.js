@@ -19,7 +19,11 @@ const state = {
     eventPassiveMultTime: 0,
     eventClickMultTime: 0,
     eventDiscountTime: 0,
-    eventFallingActiveTime: 0
+    eventFallingActiveTime: 0,
+
+    dailyStreak: 0,
+    lastDailyClaimTime: 0, // Timestamp w milisekundach
+    dailyRewardAvailable: false,
 };
 
 const inventory = {};
@@ -171,6 +175,7 @@ function triggerRebirth() {
     renderResearchGenerators();
     renderInventory();
     updateUI();
+    saveGame();
 }
 
 // Obsługa podzakładek w Zakładce 2
@@ -327,6 +332,86 @@ function addTimeSpeed(minutes) {
     state.resourcePoint += gainedRP;
     showNotification(`Time Speed (${minutes} min): Dodano +${formatNumber(gainedCP)} CP i +${gainedRP} RP!`);
     updateUI();
+}
+
+function checkDailyRewardStatus() {
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const twoDaysMs = 48 * 60 * 60 * 1000;
+
+    if (state.lastDailyClaimTime === 0) {
+        state.dailyRewardAvailable = true;
+    } else {
+        const timePassed = now - state.lastDailyClaimTime;
+        if (timePassed >= oneDayMs && timePassed < twoDaysMs) {
+            state.dailyRewardAvailable = true;
+        } else if (timePassed >= twoDaysMs) {
+            state.dailyStreak = 0;
+            state.dailyRewardAvailable = true;
+        } else {
+            state.dailyRewardAvailable = false;
+        }
+    }
+    updateDailyRewardUI();
+}
+
+function claimDailyReward() {
+    if (!state.dailyRewardAvailable) {
+        showNotification("Twoja codzienna nagroda nie jest jeszcze gotowa!");
+        return;
+    }
+
+    const rewards = [
+        { type: 'coinPoint', value: 10, label: '10 Coin Points' },
+        { type: 'timeSpeed', value: 20, label: '20 minut Time Speed' },
+        { type: 'booster', value: 20, label: 'Booster 3x na 20 min' },
+        { type: 'workers', value: 0, label: '' },
+        { type: 'resourcePoint', value: 0, label: '' }
+    ];
+
+    let result = rewards[Math.floor(Math.random() * rewards.length)];
+
+    if (result.type === 'workers') {
+        const amount = Math.floor(Math.random() * (3 - 2 + 1)) + 2;
+        result.value = amount;
+        result.label = `${amount} Pracowników`;
+    } else if (result.type === 'resourcePoint') {
+        const options =[500, 1000, 2000];
+        const amount = options[Math.floor(Math.random() * options.length)];
+        result.value = amount;
+        result.label = `${amount === 1000 ? '1K' : amount === 2000 ? '2K' : amount} Resource Points`;
+    }
+
+    if (result.type === 'coinPoint') state.coinPoint += result.value;
+    else if (result.type === 'timeSpeed') addTimeSpeed(result.value);
+    else if (result.type === 'booster') addBooster(3, result.value);
+    else if (result.type === 'workers') state.workers += result.value;
+    else if (result.type === 'resourcePoint') state.resourcePoint += result.value;
+
+    state.dailyStreak += 1;
+    state.lastDailyClaimTime = Date.now();
+    state.dailyRewardAvailable = false;
+
+    showNotification(`Odebrano nagrodę za dzień ${state.dailyStreak}: ${result.label}!`);
+    updateUI();
+    checkDailyRewardStatus();
+}
+
+function updateDailyRewardUI() {
+    const streakDisplay = document.getElementById('daily-streak-display');
+    const claimBtn = document.getElementById('daily-claim-btn');
+    if (streakDisplay) streakDisplay.innerText = state.dailyStreak;
+    if (claimBtn) {
+        if (state.dailyRewardAvailable) {
+            claimBtn.disabled = false;
+            claimBtn.innerText = "Odbierz darmową nagrodę!";
+            claimBtn.style.backgroundColor = "#2ecc71";
+        } else {
+            claimBtn.disabled = true;
+            claimBtn.innerText = "Nagroda odebrana (Wróć jutro)";
+            claimBtn.style.backgroundColor = "#555555";
+        }
+    }
 }
 
 function spinWheel() {
@@ -628,8 +713,11 @@ addResearchGenerator('rg2', 'Badania Zaawansowane', 2, 50.0, 12, 1400);
 addResearchGenerator('rg3', 'Projekt Globalny', 4, 140.0, 24, 2800);
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadGame();
     renderRecruitOptions();
     renderButtonUpgrades();
+
+    checkDailyRewardStatus();
 
     let clickBtn = document.getElementById('main-click-btn');
     if (clickBtn) {
@@ -650,6 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
 
     // Pętla 1: Wywoływana raz na sekundę (1000 ms)
+    let saveCounter = 0;
     setInterval(() => {
         if (state.eventResourceChanceTime > 0) state.eventResourceChanceTime--;
         if (state.eventPassiveMultTime > 0) state.eventPassiveMultTime--;
@@ -692,6 +781,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         updateUI();
+        checkDailyRewardStatus();
+
+        saveCounter++;
+        if (saveCounter >= 10) {
+            saveGame();
+            saveCounter = 0;
+        }
     }, 1000);
 
     // Pętla 2: Wywoływana 60 razy na sekundę (Szybka pętla płynności pasków)
@@ -1237,6 +1333,7 @@ function updateUI() {
     let levelD = document.getElementById('tech-level-display');
     if (progressB) progressB.style.width = `${state.techProgress}%`;
     levelD.innerText = `Poziom Ziemi: ${state.techLevel} (Bonus Rebirth: x${getRebirthMultiplier().toFixed(1)})`;
+    updateDailyRewardUI();
 }
 
 function recalculateBaseGains() {
@@ -1400,6 +1497,104 @@ function createFallingResourceElement() {
             setTimeout(() => img.remove(), 500);
         }
     }, 6000);
+}
+
+// --- SYSTEM ZAPISU (LOCAL STORAGE) ---
+function saveGame() {
+    const dataToSave = {
+        state: {
+            // Zapisujemy BigInt jako stringi, bo JSON nie obsługuje BigIntów
+            clickPoint: state.clickPoint.toString(),
+            baseClickPower: state.baseClickPower.toString(),
+            basePassiveGain: state.basePassiveGain.toString(),
+            
+            // Zwykłe liczby i tablice zapisujemy normalnie
+            resourcePoint: state.resourcePoint,
+            researchPoint: state.researchPoint,
+            coinPoint: state.coinPoint,
+            techProgress: state.techProgress,
+            techLevel: state.techLevel,
+            workers: state.workers,
+            rebirthCount: state.rebirthCount,
+            globalCostMultiplier: state.globalCostMultiplier,
+            wheelCooldownSeconds: state.wheelCooldownSeconds,
+            dailyStreak: state.dailyStreak,
+            lastDailyClaimTime: state.lastDailyClaimTime,
+            dailyRewardAvailable: state.dailyRewardAvailable
+        },
+        inventory: inventory,
+        masteryLevels: masteryLevels,
+        // Zapisujemy poziomy ulepszeń przycisków
+        buttonUpgrades: buttonUpgrades.map(bu => ({ id: bu.id, level: bu.level })),
+        // Zapisujemy poziomy zwykłych ulepszeń
+        upgrades: upgrades.map(u => ({ id: u.id, level: u.level }))
+    };
+
+    localStorage.setItem('civilizationClickerSave', JSON.stringify(dataToSave));
+    console.log("Gra została automatycznie zapisana!");
+}
+
+function loadGame() {
+    const savedData = localStorage.getItem('civilizationClickerSave');
+    if (!savedData) return; // Brak zapisu, gracz zaczyna od nowa
+
+    try {
+        const parsed = JSON.parse(savedData);
+
+        // Odtwarzanie podstawowego stanu konta
+        if (parsed.state) {
+            if (parsed.state.clickPoint !== undefined) state.clickPoint = BigInt(parsed.state.clickPoint);
+            if (parsed.state.baseClickPower !== undefined) state.baseClickPower = BigInt(parsed.state.baseClickPower);
+            if (parsed.state.basePassiveGain !== undefined) state.basePassiveGain = BigInt(parsed.state.basePassiveGain);
+            
+            if (parsed.state.resourcePoint !== undefined) state.resourcePoint = parsed.state.resourcePoint;
+            if (parsed.state.researchPoint !== undefined) state.researchPoint = parsed.state.researchPoint;
+            if (parsed.state.coinPoint !== undefined) state.coinPoint = parsed.state.coinPoint;
+            if (parsed.state.techProgress !== undefined) state.techProgress = parsed.state.techProgress;
+            if (parsed.state.techLevel !== undefined) state.techLevel = parsed.state.techLevel;
+            if (parsed.state.workers !== undefined) state.workers = parsed.state.workers;
+            if (parsed.state.rebirthCount !== undefined) state.rebirthCount = parsed.state.rebirthCount;
+            if (parsed.state.globalCostMultiplier !== undefined) state.globalCostMultiplier = parsed.state.globalCostMultiplier;
+            if (parsed.state.wheelCooldownSeconds !== undefined) state.wheelCooldownSeconds = parsed.state.wheelCooldownSeconds;
+            
+            // Odtwarzanie Twoich nowych serii codziennych nagród
+            if (parsed.state.dailyStreak !== undefined) state.dailyStreak = parsed.state.dailyStreak;
+            if (parsed.state.lastDailyClaimTime !== undefined) state.lastDailyClaimTime = parsed.state.lastDailyClaimTime;
+            if (parsed.state.dailyRewardAvailable !== undefined) state.dailyRewardAvailable = parsed.state.dailyRewardAvailable;
+        }
+
+        // Odtwarzanie ekwipunku
+        if (parsed.inventory) {
+            Object.keys(inventory).forEach(key => delete inventory[key]);
+            Object.assign(inventory, parsed.inventory);
+        }
+
+        // Odtwarzanie poziomów mistrzostwa
+        if (parsed.masteryLevels) {
+            Object.keys(masteryLevels).forEach(key => delete masteryLevels[key]);
+            Object.assign(masteryLevels, parsed.masteryLevels);
+        }
+
+        // Odtwarzanie ulepszeń przycisków
+        if (parsed.buttonUpgrades) {
+            parsed.buttonUpgrades.forEach(savedBu => {
+                let bu = buttonUpgrades.find(b => b.id === savedBu.id);
+                if (bu) bu.level = savedBu.level;
+            });
+        }
+
+        // Odtwarzanie standardowych ulepszeń
+        if (parsed.upgrades) {
+            parsed.upgrades.forEach(savedU => {
+                let u = upgrades.find(upg => upg.id === savedU.id);
+                if (u) u.level = savedU.level;
+            });
+        }
+
+        console.log("Zapis został wczytany pomyślnie!");
+    } catch (e) {
+        console.error("Błąd podczas wczytywania zapisu:", e);
+    }
 }
 
 planNextRandomEvent();
