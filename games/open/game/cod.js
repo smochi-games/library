@@ -596,52 +596,52 @@ addUpgrade('upg_c1', '1. Lepsza Myszka', '+1 pkt za kliknięcie', 'click', 3n, '
 addUpgrade('upg_c2', '2. Wzmocniony Palec', '+4 pkt za kliknięcie', 'click', 50n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c3', '3. Mechaniczna Ręka', '+10 pkt za kliknięcie', 'click', 300n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c4', '4. Kopalnia Zasobów', '+37 pkt za kliknięcie', 'click', 1500n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c5', '5. Autonomiczny Kursor', '+50 pkt za kliknięcie', 'click', 5000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c6', '6. Kwantowy Klikacz', '+250 pkt za kliknięcie', 'click', 30000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c7', '7. Magnetyczna Rękawica', '+500 pkt za kliknięcie', 'click', 100000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c8', '8. Klikalna Osobliwość', '+1K pkt za kliknięcie', 'click', 400000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c9', '9. Hiperprzestrzenny Stymulator', '+16K pkt za kliknięcie', 'click', 10000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c10', '10. Nanobotowy Dotyk', '+128K pkt za kliknięcie', 'click', 100000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c5', '5. Autonomiczny Kursor', '+50 pkt za kliknięcie', 'click', 8000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c6', '6. Kwantowy Klikacz', '+250 pkt za kliknięcie', 'click', 45000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c7', '7. Magnetyczna Rękawica', '+500 pkt za kliknięcie', 'click', 250000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c8', '8. Klikalna Osobliwość', '+1K pkt za kliknięcie', 'click', 1200000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c9', '9. Hiperprzestrzenny Stymulator', '+16K pkt za kliknięcie', 'click', 60000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c10', '10. Nanobotowy Dotyk', '+128K pkt za kliknięcie', 'click', 300000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c11', '11. Cyfrowy Przełamywacz Barier', '+512K pkt za kliknięcie', 'click', 600000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c12', '12. Boski Palec Stwórcy', '+32M pkt za kliknięcie', 'click', 50000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c13', '13. Ektoplazmatyczny Klik', '+128M pkt za kliknięcie', 'click', 300000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c14', '14. Prędkość Warp', '+500M pkt za kliknięcie', 'click', 800000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c15', '15. Kliknięcie Chronosa', '+1B pkt za kliknięcie', 'click', 2000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c16', '16. Rękawica Nieskończoności', '+20B pkt za kliknięcie', 'click', 60000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c17', '17. Antymaterialne Stuknięcie', '+80B pkt za kliknięcie', 'click', 350000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c18', '18. Koder Rzeczywistości', '+500B pkt za kliknięcie', 'click', 3500000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c19', '19. Złamana Symulacja', '+1T pkt za kliknięcie', 'click', 10000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c20', '20. Galaktyczny Nacisk', '+10T pkt za kliknięcie', 'click', 150000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c21', '21. Kwantowy Nadzorca', '+70T pkt za kliknięcie', 'click', 1200000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c22', '22. Wielki Wybuch w Palcu', '+600T pkt za kliknięcie', 'click', 15000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c23', '23. Wymiarowy Przełącznik', '+25Qa pkt za kliknięcie', 'click', 800000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c24', '24. Przeznaczenie Programisty', '+100Qa pkt za kliknięcie', 'click', 4000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c25', '25. Nieskończona Pętla', '+500Qi pkt za kliknięcie', 'click', 30000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c26', '26. Kliknięcie Ostateczne', '+5Sx pkt za kliknięcie', 'click', 400000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c27', '27. Poza Granice Kodu', '+50Sp pkt za kliknięcie', 'click', 6500000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c28', '28. Kwantowy Splot Palców', '+450Sp pkt za kliknięcie', 'click', 40000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c29', '29. Kosmiczna Stymulacja', '+3.6Oc pkt za kliknięcie', 'click', 350000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c30', '30. Fluktuacja Próżni', '+25Oc pkt za kliknięcie', 'click', 2500000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c31', '31. Grawitacyjny Zwijacz', '+180Oc pkt za kliknięcie', 'click', 20000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c32', '32. Wielowymiarowy Stuk', '+1.2No pkt za kliknięcie', 'click', 150000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c33', '33. Pętla Chronostazy', '+10No pkt za kliknięcie', 'click', 1200000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c34', '34. Paradoks Dziadka', '+85No pkt za kliknięcie', 'click', 10000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c35', '35. Kliknięcie Hiper-Bryłowe', '+700No pkt za kliknięcie', 'click', 90000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c36', '36. Rozdzieracz Czasoprzestrzeni', '+5Dc pkt za kliknięcie', 'click', 800000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c37', '37. Kod Ostatecznego Wyjścia', '+40Dc pkt za kliknięcie', 'click', 7500000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c38', '38. Superpozycja Dotyku', '+350Dc pkt za kliknięcie', 'click', 70000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c39', '39. Kolaps Fali Prawdopodobieństwa', '+3Un pkt za kliknięcie', 'click', 650000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c40', '40. Złamanie Szybkości Światła', '+25Un pkt za kliknięcie', 'click', 6000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c41', '41. Matryca Przeznaczenia', '+200Un pkt za kliknięcie', 'click', 55000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c42', '42. Palec Wyższego Rzędu', '+1.8Du pkt za kliknięcie', 'click', 500000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c43', '43. Puls Tachionowy', '+15Du pkt za kliknięcie', 'click', 4800000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c44', '44. Nadwzroczność Systemowa', '+120Du pkt za kliknięcie', 'click', 45000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c45', '45. Anihilacja Ograniczeń', '+1Td pkt za kliknięcie', 'click', 420000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c46', '46. Kliknięcie Meta-Fizyczne', '+9Td pkt za kliknięcie', 'click', 4000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c47', '47. Algorytm Boga', '+80Td pkt za kliknięcie', 'click', 38000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c48', '48. Przełamanie Pętli Rzeczywistości', '+700Td pkt za kliknięcie', 'click', 360000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c49', '49. Osobliwość Absolutna', '+6Qt pkt za kliknięcie', 'click', 3500000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c50', '50. Poza Horyzont Zdarzeń', '+55Qt pkt za kliknięcie', 'click', 35000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c13', '13. Ektoplazmatyczny Klik', '+128M pkt za kliknięcie', 'click', 600000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c14', '14. Prędkość Warp', '+500M pkt za kliknięcie', 'click', 1600000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c15', '15. Kliknięcie Chronosa', '+1B pkt za kliknięcie', 'click', 4000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c16', '16. Rękawica Nieskończoności', '+20B pkt za kliknięcie', 'click', 120000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c17', '17. Antymaterialne Stuknięcie', '+80B pkt za kliknięcie', 'click', 700000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c18', '18. Koder Rzeczywistości', '+500B pkt za kliknięcie', 'click', 7000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c19', '19. Złamana Symulacja', '+1T pkt za kliknięcie', 'click', 30000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c20', '20. Galaktyczny Nacisk', '+10T pkt za kliknięcie', 'click', 450000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c21', '21. Kwantowy Nadzorca', '+70T pkt za kliknięcie', 'click', 3600000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c22', '22. Wielki Wybuch w Palcu', '+600T pkt za kliknięcie', 'click', 45000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c23', '23. Wymiarowy Przełącznik', '+25Qa pkt za kliknięcie', 'click', 2400000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c24', '24. Przeznaczenie Programisty', '+100Qa pkt za kliknięcie', 'click', 12000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c25', '25. Nieskończona Pętla', '+500Qi pkt za kliknięcie', 'click', 900000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c26', '26. Kliknięcie Ostateczne', '+5Sx pkt za kliknięcie', 'click', 12000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c27', '27. Poza Granice Kodu', '+50Sp pkt za kliknięcie', 'click', 185000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c28', '28. Kwantowy Splot Palców', '+450Sp pkt za kliknięcie', 'click', 1200000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c29', '29. Kosmiczna Stymulacja', '+3.6Oc pkt za kliknięcie', 'click', 9500000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c30', '30. Fluktuacja Próżni', '+25Oc pkt za kliknięcie', 'click', 100000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c31', '31. Grawitacyjny Zwijacz', '+180Oc pkt za kliknięcie', 'click', 800000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c32', '32. Wielowymiarowy Stuk', '+1.2No pkt za kliknięcie', 'click', 6000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c33', '33. Pętla Chronostazy', '+10No pkt za kliknięcie', 'click', 48000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c34', '34. Paradoks Dziadka', '+85No pkt za kliknięcie', 'click', 400000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c35', '35. Kliknięcie Hiper-Bryłowe', '+700No pkt za kliknięcie', 'click', 3600000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c36', '36. Rozdzieracz Czasoprzestrzeni', '+5Dc pkt za kliknięcie', 'click', 32000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c37', '37. Kod Ostatecznego Wyjścia', '+40Dc pkt za kliknięcie', 'click', 285000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c38', '38. Superpozycja Dotyku', '+350Dc pkt za kliknięcie', 'click', 2800000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c39', '39. Kolaps Fali Prawdopodobieństwa', '+3Un pkt za kliknięcie', 'click', 245000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c40', '40. Złamanie Szybkości Światła', '+25Un pkt za kliknięcie', 'click', 2400000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c41', '41. Matryca Przeznaczenia', '+200Un pkt za kliknięcie', 'click', 20500000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c42', '42. Palec Wyższego Rzędu', '+1.8Du pkt za kliknięcie', 'click', 200000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c43', '43. Puls Tachionowy', '+15Du pkt za kliknięcie', 'click', 1680000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c44', '44. Nadwzroczność Systemowa', '+120Du pkt za kliknięcie', 'click', 16500000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c45', '45. Anihilacja Ograniczeń', '+1Td pkt za kliknięcie', 'click', 162000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c46', '46. Kliknięcie Meta-Fizyczne', '+9Td pkt za kliknięcie', 'click', 1600000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c47', '47. Algorytm Boga', '+80Td pkt za kliknięcie', 'click', 12800000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c48', '48. Przełamanie Pętli Rzeczywistości', '+700Td pkt za kliknięcie', 'click', 126000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c49', '49. Osobliwość Absolutna', '+6Qt pkt za kliknięcie', 'click', 1250000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c50', '50. Poza Horyzont Zdarzeń', '+55Qt pkt za kliknięcie', 'click', 12500000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
 
 // Pełna lista 50 ulepszeń pasywnych
 addUpgrade('upg_p1', '1. Automatyczny Skrypt', '+2 pkt/sek', 'passive', 50n, 'clickPoint', (lvl) => {});
@@ -653,47 +653,47 @@ addUpgrade('upg_p6', '6. Algorytm Przychodu', '+500 pkt/sek', 'passive', 150000n
 addUpgrade('upg_p7', '7. Sztuczna Inteligencja', '+1K pkt/sek', 'passive', 600000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_p8', '8. Rój Nanorobotów', '+2K pkt/sek', 'passive', 2500000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_p9', '9. Fabryka Generatorów', '+32K pkt/sek', 'passive', 50000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p10', '10. Cyfrowa Korporacja', '+256K pkt/sek', 'passive', 500000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p11', '11. Kwantowa Chmura Obliczeniowa', '+1.024M pkt/sek', 'passive', 3000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p12', '12. Globalny Monopol Informacyjny', '+64M pkt/sek', 'passive', 250000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p13', '13. Sieć Neuronowa Świata', '+256M pkt/sek', 'passive', 1500000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p14', '14. Planetarny Generator Czasu', '+1B pkt/sek', 'passive', 8000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p15', '15. Fuzja Rdzeniowa Gamedeva', '+5B pkt/sek', 'passive', 50000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p16', '16. Pętla Przestrzenna', '+25B pkt/sek', 'passive', 350000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p17', '17. Emanacja Pustki', '+150B pkt/sek', 'passive', 2500000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p18', '18. Matrix 2.0', '+800B pkt/sek', 'passive', 16000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p19', '19. Galaktyczny Nadajnik', '+2T pkt/sek', 'passive', 50000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p20', '20. Singularność Przychodu', '+20T pkt/sek', 'passive', 600000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p21', '21. Hiper-Kompilator', '+150T pkt/sek', 'passive', 5000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p22', '22. Równoległe Uniwersum', '+1.2Qa pkt/sek', 'passive', 50000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p23', '23. Esencja Prędkości', '+50Qa pkt/sek', 'passive', 2500000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p24', '24. Czwarty Wymiar Przychodu', '+200Qa pkt/sek', 'passive', 12000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p25', '25. Naczelny Architekt Kodu', '+1Sx pkt/sek', 'passive', 80000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p26', '26. Nieskończony Strumień Myśli', '+10Sx pkt/sek', 'passive', 1000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p27', '27. Absolutne Źródło Danych', '+55Sp pkt/sek', 'passive', 5500000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p28', '28. Multi-Wymiarowa Serwerownia', '+500Sp pkt/sek', 'passive', 45000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p29', '29. Kosmiczny Generator Przychodu', '+4Oc pkt/sek', 'passive', 400000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p30', '30. Projektor Fali Kwantowej', '+28Oc pkt/sek', 'passive', 3000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p31', '31. Hiperprzestrzenna Kopalnia', '+200Oc pkt/sek', 'passive', 24000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p32', '32. Makro-Struktura Przychodu', '+1.4No pkt/sek', 'passive', 180000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p33', '33. Reaktor Paralleli', '+12No pkt/sek', 'passive', 1400000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p34', '34. Strumień Tachionów', '+95No pkt/sek', 'passive', 12000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p35', '35. Symulator Wielkiego Wybuchu', '+800No pkt/sek', 'passive', 100000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p36', '36. Kolektor Energii Próżni', '+6Dc pkt/sek', 'passive', 900000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p37', '37. Kod Architekta Wszechświata', '+48Dc pkt/sek', 'passive', 8500000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p38', '38. Automatyzacja Wyższego Wymiaru', '+400Dc pkt/sek', 'passive', 80000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p39', '39. Chronowizor Zarobkowy', '+3.5Un pkt/sek', 'passive', 750000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p40', '40. Sieć Meta-Kwantowa', '+28Un pkt/sek', 'passive', 7000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p41', '41. Rdzeń Nieskończonego Postępu', '+220Un pkt/sek', 'passive', 65000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p42', '42. Galaktyczna Nad-Struktura', '+2Du pkt/sek', 'passive', 600000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p43', '43. Pulsator Prawdopodobieństwa', '+18Du pkt/sek', 'passive', 5500000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p44', '44. Nad-Inżynieria Matrixa', '+140Du pkt/sek', 'passive', 50000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p45', '45. Paradoks Nieskończonych Danych', '+1.2Td pkt/sek', 'passive', 480000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p46', '46. Kompilator Rzeczywistości', '+10Td pkt/sek', 'passive', 4500000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p47', '47. Singularność Informacyjna', '+90Td pkt/sek', 'passive', 42000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p48', '48. Absolutny Strumień Przychodu', '+800Td pkt/sek', 'passive', 400000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p49', '49. Wszechwiedzący Algorytm', '+7Qt pkt/sek', 'passive', 3800000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_p50', '50. Ostateczna Dominacja Kodu', '+60Qt pkt/sek', 'passive', 38000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p10', '10. Cyfrowa Korporacja', '+256K pkt/sek', 'passive', 1000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p11', '11. Kwantowa Chmura Obliczeniowa', '+1.024M pkt/sek', 'passive', 6000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p12', '12. Globalny Monopol Informacyjny', '+64M pkt/sek', 'passive', 500000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p13', '13. Sieć Neuronowa Świata', '+256M pkt/sek', 'passive', 3000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p14', '14. Planetarny Generator Czasu', '+1B pkt/sek', 'passive', 16000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p15', '15. Fuzja Rdzeniowa Gamedeva', '+5B pkt/sek', 'passive', 100000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p16', '16. Pętla Przestrzenna', '+25B pkt/sek', 'passive', 700000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p17', '17. Emanacja Pustki', '+150B pkt/sek', 'passive', 5000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p18', '18. Matrix 2.0', '+800B pkt/sek', 'passive', 32000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p19', '19. Galaktyczny Nadajnik', '+2T pkt/sek', 'passive', 100000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p20', '20. Singularność Przychodu', '+20T pkt/sek', 'passive', 1800000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p21', '21. Hiper-Kompilator', '+150T pkt/sek', 'passive', 15000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p22', '22. Równoległe Uniwersum', '+1.2Qa pkt/sek', 'passive', 150000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p23', '23. Esencja Prędkości', '+50Qa pkt/sek', 'passive', 7500000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p24', '24. Czwarty Wymiar Przychodu', '+200Qa pkt/sek', 'passive', 36000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p25', '25. Naczelny Architekt Kodu', '+1Sx pkt/sek', 'passive', 2400000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p26', '26. Nieskończony Strumień Myśli', '+10Sx pkt/sek', 'passive', 30000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p27', '27. Absolutne Źródło Danych', '+55Sp pkt/sek', 'passive', 155000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p28', '28. Multi-Wymiarowa Serwerownia', '+500Sp pkt/sek', 'passive', 1250000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p29', '29. Kosmiczny Generator Przychodu', '+4Oc pkt/sek', 'passive', 12000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p30', '30. Projektor Fali Kwantowej', '+28Oc pkt/sek', 'passive', 90000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p31', '31. Hiperprzestrzenna Kopalnia', '+200Oc pkt/sek', 'passive', 960000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p32', '32. Makro-Struktura Przychodu', '+1.4No pkt/sek', 'passive', 6600000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p33', '33. Reaktor Paralleli', '+12No pkt/sek', 'passive', 56000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p34', '34. Strumień Tachionów', '+95No pkt/sek', 'passive', 480000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p35', '35. Symulator Wielkiego Wybuchu', '+800No pkt/sek', 'passive', 4000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p36', '36. Kolektor Energii Próżni', '+6Dc pkt/sek', 'passive', 36000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p37', '37. Kod Architekta Wszechświata', '+48Dc pkt/sek', 'passive', 325000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p38', '38. Automatyzacja Wyższego Wymiaru', '+400Dc pkt/sek', 'passive', 3200000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p39', '39. Chronowizor Zarobkowy', '+3.5Un pkt/sek', 'passive', 28500000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p40', '40. Sieć Meta-Kwantowa', '+28Un pkt/sek', 'passive', 2800000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p41', '41. Rdzeń Nieskończonego Postępu', '+220Un pkt/sek', 'passive', 24500000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p42', '42. Galaktyczna Nad-Struktura', '+2Du pkt/sek', 'passive', 240000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p43', '43. Pulsator Prawdopodobieństwa', '+18Du pkt/sek', 'passive', 2050000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p44', '44. Nad-Inżynieria Matrixa', '+140Du pkt/sek', 'passive', 20000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p45', '45. Paradoks Nieskończonych Danych', '+1.2Td pkt/sek', 'passive', 168000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p46', '46. Kompilator Rzeczywistości', '+10Td pkt/sek', 'passive', 1650000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p47', '47. Singularność Informacyjna', '+90Td pkt/sek', 'passive', 16200000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p48', '48. Absolutny Strumień Przychodu', '+800Td pkt/sek', 'passive', 160000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p49', '49. Wszechwiedzący Algorytm', '+7Qt pkt/sek', 'passive', 1280000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_p50', '50. Ostateczna Dominacja Kodu', '+60Qt pkt/sek', 'passive', 12800000000000000000000000000000000000000000000000000000n, 'clickPoint', (lvl) => {});
 
 // Badania wielokrotne (Ziemia)
 addUpgrade('res1', 'Badania nad Parą', 'Zwiększa postęp techniczny Ziemi (+25%)', 'research', 1, 'researchPoint', (lvl) => { addTechProgress(25); });
@@ -1114,20 +1114,32 @@ function updateGeneratorUI(id) {
 }
 
 function getUpgradeCost(upg) {
-    let multiplier = 1.0;
+    // 1. Definiujemy nowe, łagodniejsze mnożniki wzrostu na poziom ulepszenia
+    let baseMultiplier = 1.0;
     if (upg.category === 'click') {
-        multiplier = 1.50;
+        baseMultiplier = 1.12; // Łagodniejszy wzrost pozwala na wbijanie wyższych poziomów
     } else if (upg.category === 'passive') {
-        multiplier = 1.65;
+        baseMultiplier = 1.15;
     } else {
-        multiplier = 1.80;
+        baseMultiplier = 1.30;
     }
 
-    let finalCost = Math.floor(Number(upg.baseCost) * Math.pow(multiplier, upg.level));
-    if (state.eventDiscountTime > 0) {
-        finalCost = Math.floor(finalCost * 0.90);
+    // 2. Obliczamy bazowy koszt ulepszenia dla danego poziomu
+    let finalCost = Number(upg.baseCost) * Math.pow(baseMultiplier, upg.level);
+
+    // 3. SKALOWANIE POD PRESTIŻ (Modyfikator wydłużający grę do 30+ Rebirth)
+    // Z każdym Rebirth bazowa cena ulepszeń rośnie o 80%, co idealnie balansuje stałe mnożniki
+    if (state.rebirthCount > 0) {
+        finalCost = finalCost * Math.pow(1.8, state.rebirthCount);
     }
-    return finalCost;
+
+    // 4. Aplikujemy ewentualny rabat z losowego wydarzenia
+    if (state.eventDiscountTime > 0) {
+        finalCost = finalCost * 0.90;
+    }
+
+    // Zwracamy zaokrąglony koszt w postaci liczby całkowitej (gotowej do BigInt)
+    return Math.floor(finalCost);
 }
 
 function getUpgradeRpCost(upg) { return upg.level < 35 ? 0 : Math.floor(2 * Math.pow(1.2, upg.level - 35)); }
