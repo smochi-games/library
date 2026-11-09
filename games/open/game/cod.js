@@ -600,11 +600,11 @@ addUpgrade('upg_c5', '5. Autonomiczny Kursor', '+50 pkt za kliknięcie', 'click'
 addUpgrade('upg_c6', '6. Kwantowy Klikacz', '+250 pkt za kliknięcie', 'click', 30000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c7', '7. Magnetyczna Rękawica', '+500 pkt za kliknięcie', 'click', 100000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c8', '8. Klikalna Osobliwość', '+1K pkt za kliknięcie', 'click', 400000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c9', '9. Hiperprzestrzenny Stymulator', '+16K pkt za kliknięcie', 'click', 5000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c10', '10. Nanobotowy Dotyk', '+128K pkt za kliknięcie', 'click', 50000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c11', '11. Cyfrowy Przełamywacz Barier', '+512K pkt za kliknięcie', 'click', 300000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c12', '12. Boski Palec Stwórcy', '+32M pkt za kliknięcie', 'click', 25000000000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c13', '13. Ektoplazmatyczny Klik', '+128M pkt za kliknięcie', 'click', 150000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c9', '9. Hiperprzestrzenny Stymulator', '+16K pkt za kliknięcie', 'click', 10000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c10', '10. Nanobotowy Dotyk', '+128K pkt za kliknięcie', 'click', 100000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c11', '11. Cyfrowy Przełamywacz Barier', '+512K pkt za kliknięcie', 'click', 600000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c12', '12. Boski Palec Stwórcy', '+32M pkt za kliknięcie', 'click', 50000000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c13', '13. Ektoplazmatyczny Klik', '+128M pkt za kliknięcie', 'click', 300000000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c14', '14. Prędkość Warp', '+500M pkt za kliknięcie', 'click', 800000000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c15', '15. Kliknięcie Chronosa', '+1B pkt za kliknięcie', 'click', 2000000000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c16', '16. Rękawica Nieskończoności', '+20B pkt za kliknięcie', 'click', 60000000000000n, 'clickPoint', (lvl) => {});
