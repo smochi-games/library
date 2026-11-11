@@ -599,8 +599,8 @@ addUpgrade('upg_c4', '4. Kopalnia Zasobów', '+37 pkt za kliknięcie', 'click', 
 addUpgrade('upg_c5', '5. Autonomiczny Kursor', '+50 pkt za kliknięcie', 'click', 8000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c6', '6. Kwantowy Klikacz', '+250 pkt za kliknięcie', 'click', 45000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c7', '7. Magnetyczna Rękawica', '+500 pkt za kliknięcie', 'click', 250000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c8', '8. Klikalna Osobliwość', '+1K pkt za kliknięcie', 'click', 1200000n, 'clickPoint', (lvl) => {});
-addUpgrade('upg_c9', '9. Hiperprzestrzenny Stymulator', '+16K pkt za kliknięcie', 'click', 60000000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c8', '8. Klikalna Osobliwość', '+1K pkt za kliknięcie', 'click', 2400000n, 'clickPoint', (lvl) => {});
+addUpgrade('upg_c9', '9. Hiperprzestrzenny Stymulator', '+16K pkt za kliknięcie', 'click', 120000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c10', '10. Nanobotowy Dotyk', '+128K pkt za kliknięcie', 'click', 300000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c11', '11. Cyfrowy Przełamywacz Barier', '+512K pkt za kliknięcie', 'click', 600000000n, 'clickPoint', (lvl) => {});
 addUpgrade('upg_c12', '12. Boski Palec Stwórcy', '+32M pkt za kliknięcie', 'click', 50000000000n, 'clickPoint', (lvl) => {});
