@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>System Walki - Styl Deltarune</title>
+    <link rel="stylesheet" href="visual.css">
+</head>
+<body>
+
+    <div id="game-shell">
+        <!-- Górna arena graficzna -->
+        <div id="arena-wrapper">
+            <canvas id="battle-canvas"></canvas>
+
+            <!-- Pasek TP -->
+            <div id="tp-container">
+                <span class="tp-label">TP</span>
+                <div id="tp-bar-bg">
+                    <div id="tp-bar-fill"></div>
+                </div>
+                <span id="tp-text" class="tp-val">0%</span>
+            </div>
+
+            <!-- Przyciski dotykowe na telefon podczas fazy unikania -->
+            <div id="mobile-controls">
+                <div></div>
+                <button class="dpad-btn" data-dir="up" aria-label="Góra">▲</button>
+                <div></div>
+                <button class="dpad-btn" data-dir="left" aria-label="Lewo">◀</button>
+                <button class="dpad-btn" data-dir="down" aria-label="Dół">▼</button>
+                <button class="dpad-btn" data-dir="right" aria-label="Prawo">▶</button>
+            </div>
+        </div>
+
+        <!-- Dolny interfejs walki -->
+        <div id="ui-bottom">
+            <!-- Panel 3 bezimiennych postaci -->
+            <div id="party-bar"></div>
+
+            <!-- Okno dialogowe / menu akcji -->
+            <div id="dialog-box">
+                <div id="dialog-text">* Przeciwnik blokuje drogę!</div>
+                <div id="submenu-area"></div>
+
+                <!-- Mini-gra równoczesnych pasków ataku (aktywuje się po przekroczeniu 50%) -->
+                <div id="attack-bar-overlay">
+                    <div id="attack-prompt">POCZEKAJ NA POŁOWĘ PASKA (50%)!</div>
+                    <div id="multi-tracks-container"></div>
+                    <button id="strike-btn" class="strike-locked">
+                        ZABLOKOWANE (&lt; 50%)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ekran wyboru trudności / trybu Practice / końca walki -->
+        <div id="end-screen">
+<!-- Wybór Bossa (Nowe okienko wyboru) -->
+            <div class="section-box">
+    <div id="daily-boss-counter">POKONANI BOSSOWIE DZISIAJ: 0</div>
+    <div id="daily-mission-banner">MISJA: Ładowanie...</div>
+    <div id="daily-streak-counter">SERIA MISJI: 🔥 0 dni</div>
+                <div class="section-title-yellow">WYBIERZ BOSSA:</div>
+                <div class="boss-selector-row" id="boss-selector">
+                    <!-- Generowane automatycznie przez skrypt JS -->
+                </div>
+            </div>
+            <h1 id="end-title">SYSTEM WALKI</h1>
+            <p id="end-subtitle">
+            </p>
+
+            <!-- Wybór poziomu trudności -->
+            <div class="section-box">
+                <div class="section-title-yellow">POZIOM TRUDNOŚCI:</div>
+                <div class="diff-row" id="difficulty-selector">
+                    <button class="diff-btn" data-diff="easy">EASY</button>
+                    <button class="diff-btn selected" data-diff="normal">NORMAL</button>
+                    <button class="diff-btn" data-diff="hard">HARD</button>
+                </div>
+                <p id="diff-desc">
+                    Normal: szybsze ataki, małe pociski.
+                </p>
+            </div>
+
+            <button id="restart-btn">ROZPOCZNIJ WALKĘ</button>
+
+            <!-- Tryb Practice -->
+            <div class="practice-wrapper">
+                <div class="section-title-blue">TRYB PRACTICE (TEST ATAKÓW):</div>
+                <div class="practice-grid" id="practice-selector">
+                    <button class="prac-btn random-btn" data-pattern="random">🎲 Losowy Atak</button>
+                    <button class="prac-btn" data-pattern="0">1. Deszcz Odłamków</button>
+                    <button class="prac-btn" data-pattern="1">2. Pierścień</button>
+                    <button class="prac-btn" data-pattern="2">3. Snajperki</button>
+                    <button class="prac-btn" data-pattern="3">4. Fala Sinusoidalna</button>
+                    <button class="prac-btn" data-pattern="4">5. Siatka Laserów</button>
+                    <button class="prac-btn" data-pattern="5">6. Rykoszety</button>
+                    <button class="prac-btn" data-pattern="6">7. Boczny Ostrzał</button>
+                    <button class="prac-btn" data-pattern="7">8. Grad Odłamków</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cod.js"></script>
+<div style="
+  position: fixed;
+  bottom: 12px;
+  left: 15px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: monospace;
+  font-size: 14px;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+">
+  DeltaCup by ziemniaczek
+</div>
+</body>
+</html>

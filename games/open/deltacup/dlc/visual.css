@@ -1,0 +1,892 @@
+        /* Czysty CSS bez zewnętrznych zależności, styl retro/pixel-art */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+body {
+    background: #050505 url('graphics/tlo.png') no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+        /* Główna rama gry w żółtym obramowaniu */
+        #game-shell {
+            width: 100%;
+            max-width: 840px;
+            height: 100dvh;
+            max-height: 720px;
+            background-color: #000000;
+            border: 6px solid #FFFFFF;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 32px rgba(255, 255, 0, 0.2);
+            overflow: hidden;
+        }
+
+        /* Górna arena walki (Canvas) */
+        #arena-wrapper {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000000;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Pasek TP po lewej stronie areny */
+        #tp-container {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .tp-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fb923c;
+            letter-spacing: 1px;
+        }
+
+        .tp-val {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        #tp-bar-bg {
+            width: 18px;
+            height: 150px;
+            border: 2px solid #ffffff;
+            border-radius: 3px;
+            background: #1a0a00;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        #tp-bar-fill {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(180deg, #ffae00 0%, #ff6a00 100%);
+            transition: height 0.15s ease-out;
+        }
+
+        /* Dolny panel interfejsu */
+        #ui-bottom {
+            height: 238px;
+            background-color: #000000;
+            border-top: 3px solid #ffff00;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        /* Pasek postaci i przycisków akcji */
+        #party-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-bottom: 3px solid #ffff00;
+            background: #000000;
+        }
+
+        .char-panel {
+            padding: 6px 8px;
+            border-right: 2px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: background-color 0.15s;
+        }
+
+        .char-panel:last-child {
+            border-right: none;
+        }
+
+        .char-panel.active-turn {
+            background-color: #151515;
+            box-shadow: inset 0 3px 0 #ffff00;
+        }
+
+        .char-panel.downed {
+            opacity: 0.42;
+        }
+
+        .char-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .char-badge-wrap {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .char-num {
+            font-size: 12px;
+            font-weight: bold;
+            color: #9ca3af;
+        }
+
+        .hp-track {
+            flex: 1;
+            height: 10px;
+            background: #3a0000;
+            border: 1px solid #ffffff;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            transition: width 0.2s ease;
+        }
+
+        .hp-text {
+            font-size: 12px;
+            font-weight: bold;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+
+/* Rząd 4 przycisków akcji (ATTACK, ACT, ITEM, DEFEND) */
+.action-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+}
+
+        .act-btn {
+            background: #000000;
+            border: 1.5px solid #ff7b00;
+            border-radius: 4px;
+            color: #ff7b00;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 1px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.08s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 28px;
+        }
+
+        .act-btn svg {
+            width: 15px;
+            height: 15px;
+            display: block;
+        }
+
+        @media (min-width: 640px) {
+            .act-btn {
+                font-size: 12px;
+                min-height: 30px;
+            }
+            .act-btn svg {
+                width: 17px;
+                height: 17px;
+            }
+        }
+
+        .act-btn:hover:not(:disabled),
+        .act-btn.selected,
+        .act-btn.nav-focused {
+            background: #ffff00;
+            border-color: #ffff00;
+            color: #000000;
+            transform: translateY(-1px);
+            box-shadow: 0 0 8px rgba(255, 255, 0, 0.7);
+        }
+
+        .act-btn:disabled {
+            border-color: #333333;
+            color: #444444;
+            cursor: default;
+        }
+
+        /* Okno dialogowe i podmenu */
+        #dialog-box {
+            flex: 1;
+            padding: 10px 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        #dialog-text {
+            font-size: 17px;
+            font-weight: bold;
+            line-height: 1.3;
+            color: #ffffff;
+        }
+
+        .submenu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px 14px;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 540px) {
+            .submenu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .submenu-item {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffffff;
+            background: transparent;
+            border: 1.5px solid transparent;
+            border-radius: 4px;
+            text-align: left;
+            padding: 5px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .submenu-item:hover,
+        .submenu-item:focus,
+        .submenu-item.nav-focused {
+            border-color: #ffff00;
+            color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+            outline: none;
+        }
+
+        .submenu-item.disabled-skill {
+            opacity: 0.48;
+            color: #9ca3af;
+        }
+
+        .submenu-item.disabled-skill:hover,
+        .submenu-item.disabled-skill.nav-focused {
+            border-color: #ef4444;
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .submenu-item.text-yellow {
+            color: #fde047;
+        }
+
+        .submenu-item.text-muted {
+            color: #9ca3af;
+        }
+
+        .heart-cursor {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Nakładka równoczesnych pasków ataku (jak w Deltarune) */
+        #attack-bar-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.96);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            z-index: 30;
+        }
+
+        #attack-prompt {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        #multi-tracks-container {
+            width: 94%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .timing-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timing-char-tag {
+            font-size: 13px;
+            font-weight: bold;
+            width: 34px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .timing-track {
+            flex: 1;
+            height: 24px;
+            border: 2px solid #ffffff;
+            border-radius: 3px;
+            background: #111111;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timing-track.done {
+            opacity: 0.45;
+        }
+
+        /* Prawa połowa paska (0-50%) gdzie atak jest jeszcze zablokowany */
+        .timing-locked-zone {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 50%;
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(239, 68, 68, 0.2),
+                rgba(239, 68, 68, 0.2) 7px,
+                rgba(0, 0, 0, 0.4) 7px,
+                rgba(0, 0, 0, 0.4) 14px
+            );
+            border-left: 2px dashed #ef4444;
+            pointer-events: none;
+        }
+
+        .timing-target {
+            position: absolute;
+            left: 14px;
+            top: 0;
+            bottom: 0;
+            width: 22px;
+            background: rgba(255, 255, 0, 0.35);
+            border-left: 3px solid #ffff00;
+            border-right: 3px solid #ffff00;
+        }
+
+        .timing-cursor {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 7px;
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+            left: 96%;
+            transition: background-color 0.06s, box-shadow 0.06s;
+        }
+
+        .timing-cursor.ready {
+            background: #ffffff;
+            box-shadow: 0 0 12px #ffff00;
+        }
+
+        #strike-btn {
+            padding: 6px 22px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: all 0.1s;
+        }
+
+        .strike-locked {
+            background: #1f2937;
+            border: 2px solid #6b7280;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .strike-ready {
+            background: #ffff00;
+            border: 2px solid #ffffff;
+            color: #000000;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.6);
+        }
+
+        /* Wirtualny pad kierunkowy dla urządzeń dotykowych podczas unikania */
+        #mobile-controls {
+            display: none;
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            z-index: 25;
+            gap: 6px;
+            opacity: 0.78;
+        }
+
+        @media (pointer: coarse) {
+            #mobile-controls.active {
+                display: grid;
+                grid-template-columns: repeat(3, 44px);
+                grid-template-rows: repeat(2, 44px);
+            }
+        }
+
+        .dpad-btn {
+            background: rgba(255, 255, 255, 0.14);
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dpad-btn:active {
+            background: #ffff00;
+            color: #000000;
+        }
+
+        /* Ekran startowy / wyboru bossa / trudności / practice */
+        #end-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85) url('graphics/background.png') no-repeat center center; /* <-- DODANE TŁO */
+            background-size: cover; /* <-- ROZCIĄGANIE OBRAZKA NA CAŁY EKRAN */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            text-align: center;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        #end-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: 2px;
+            margin: 0 0 8px 0;
+        }
+
+        #end-title.gameover {
+            color: #ef4444;
+        }
+
+        #end-subtitle {
+            font-size: 16px;
+            color: #e5e7eb;
+            margin: 0 0 14px 0;
+            max-width: 480px;
+        }
+
+        .section-box {
+            width: 100%;
+            max-width: 520px;
+            margin-bottom: 14px;
+        }
+
+        .section-title-yellow {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fde047;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .section-title-blue {
+            font-size: 12px;
+            font-weight: bold;
+            color: #93c5fd;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .diff-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .diff-btn {
+            background: #000000;
+            border: 2px solid #ffffff;
+            border-radius: 4px;
+            color: #ffffff;
+            padding: 8px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.12s;
+            min-width: 96px;
+        }
+
+        .diff-btn.selected {
+            border-color: #ffff00;
+            background: #ffff00;
+            color: #000000;
+            box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+        }
+
+        .diff-btn:hover:not(.selected) {
+            border-color: #ffff00;
+            color: #ffff00;
+        }
+
+        #diff-desc {
+            font-size: 14px;
+            color: #9ca3af;
+            margin: 6px 0 0 0;
+        }
+
+        #restart-btn {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 10px 26px;
+            background: #facc15;
+            color: #000000;
+            border: 2px solid #ffffff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.12s;
+            margin-bottom: 16px;
+        }
+
+        #restart-btn:hover {
+            background: #ffffff;
+            box-shadow: 0 0 14px rgba(255, 255, 0, 0.7);
+        }
+
+        .practice-wrapper {
+            width: 100%;
+            max-width: 540px;
+            border-top: 1px solid #374151;
+            padding-top: 12px;
+        }
+
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        @media (max-width: 540px) {
+            .practice-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .prac-btn {
+            background: #0b0b0b;
+            border: 1.5px solid #60a5fa;
+            border-radius: 4px;
+            color: #93c5fd;
+            padding: 6px 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.12s;
+            text-align: center;
+        }
+
+        .prac-btn.random-btn {
+            border-color: #facc15;
+            color: #fde047;
+        }
+
+        .prac-btn:hover {
+            background: #60a5fa;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        .prac-btn.random-btn:hover {
+            background: #facc15;
+            color: #000000;
+        }
+
+        .prac-controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .prac-ctrl-btn {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #111111;
+        }
+
+        .prac-ctrl-next {
+            border: 1.5px solid #facc15;
+            color: #fde047;
+        }
+
+        .prac-ctrl-next:hover {
+            background: #facc15;
+            color: #000000;
+        }
+
+        .prac-ctrl-exit {
+            border: 1.5px solid #f87171;
+            color: #fca5a5;
+        }
+
+        .prac-ctrl-exit:hover {
+            background: #f87171;
+            color: #000000;
+        }
+
+/* Poziomy pasek wyboru bossów z płynnym przewijaniem */
+.boss-selector-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 10px;
+    width: 100%;
+    max-width: 520px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+}
+
+/* Karta bosa jako pionowy prostokąt */
+.boss-opt-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 110px;
+    height: 150px;
+    flex: 0 0 auto; /* Zabezpiecza przed kurczeniem się kart */
+    background: #000000;
+    border: 2px solid #a855f7;
+    border-radius: 6px;
+    color: #d8b4fe;
+    padding: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Wygląd / grafika bosa w górnej części karty */
+.boss-opt-img {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.boss-opt-img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Nazwa bosa na samym dole karty */
+.boss-opt-name {
+    font-size: 11px;
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+    border-radius: 4px;
+}
+
+/* Stany aktywne i najechane */
+.boss-opt-btn.selected {
+    border-color: #ffff00;
+    background: #252000;
+    color: #ffff00;
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+    transform: translateY(-3px);
+}
+
+.boss-opt-btn:hover:not(.selected) {
+    border-color: #ffff00;
+    color: #ffff00;
+    transform: translateY(-3px);
+}
+
+#daily-boss-counter {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    font-weight: bold;
+    color: #fde047; /* Żółty kolor Deltarune */
+    text-shadow: 2px 2px 3px #000;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+#daily-mission-banner {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: #38bdf8; /* Jasnoniebieski kolor dla misji */
+    text-shadow: 2px 2px 3px #000;
+    margin-bottom: 20px;
+}
+
+#daily-mission-banner.completed {
+    color: #4ade80; /* Zielony po wykonaniu misji */
+}
+
+#daily-streak-counter {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ff4500; /* Pomarańczowo-czerwony kolor ognia */
+    text-shadow: 2px 2px 3px #000;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+/* Kontener na wszystkie karty bossów – poziomy pasek z przewijaniem */
+.boss-tabs-container, .boss-selection-container {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+}
+
+/* Pojedyncza karta bosa – pionowy prostokąt */
+.boss-card, .boss-tab {
+    flex: 0 0 120px;       /* Stała szerokość karty */
+    height: 170px;         /* Wysokość prostokąta */
+    background: #181818;
+    border: 2px solid #333;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+}
+
+/* Efekt najechania i aktywnej karty */
+.boss-card:hover, .boss-tab:hover, 
+.boss-card.active, .boss-tab.active {
+    border-color: #ffcc00;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+}
+
+/* Grafika/wygląd bosa w górnej części karty */
+.boss-card-image, .boss-tab-img {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.boss-card-image img, .boss-tab-img img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Nazwa bosa na samym dole karty */
+.boss-card-name, .boss-tab-name {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    color: #ffffff;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+    border-radius: 4px;
+}
+
+/* Uniwersalna klasa dla awatarów/postaci w grze */
+.battle-character, .party-member-sprite {
+    width: 64px;
+    height: 64px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated; /* Jeśli grafiki są pixel-artem, zachowuje ostrość */
+}
+
+/* Przypisanie konkretnych grafik do postacji */
+.char-kris {
+    background-image: url('kris.png');
+}
+
+.char-susie {
+    background-image: url('susie.png');
+}
+
+.char-helper {
+    background-image: url('helper.png');
+}
